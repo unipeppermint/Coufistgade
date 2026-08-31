@@ -1,0 +1,127 @@
+//
+//  GameHUDView.swift
+//  coufistgade
+//
+//  The game's UIKit HUD: score, and combo when it is running (UI_DESIGN §8).
+//
+//  Composed rather than left as two views on the controller for one concrete
+//  reason: the HUD's height sets the top of the playable area, and that has to
+//  be a single measurement. Two independently-positioned views would each need
+//  the controller to know their layout relationship.
+//
+
+import UIKit
+
+final class GameHUDView: UIView {
+
+    private let scoreHUD: ScoreHUDView
+    private let comboHUD: ComboHUDView
+    private let timerHUD: TimerHUDView
+    private let stack = UIStackView()
+
+    /// Emphasis from the most recent combo event, applied to the next score pop.
+    ///
+    /// GAMEPLAY §16 asks for a stronger *score* animation at combo 4, so the
+    /// score pop needs the combo's emphasis. It cannot be derived from
+    /// ScoreEvent's multiplier: combo 2 and combo 3 both pay 2x, so the
+    /// multiplier alone cannot tell them apart. GameScene reports combo before
+    /// score, which is what makes this ordering sound.
+    private var pendingEmphasis: ComboEmphasis = .normal
+
+    init(
+        scoreHUD: ScoreHUDView = ScoreHUDView(),
+        comboHUD: ComboHUDView = ComboHUDView(),
+        timerHUD: TimerHUDView = TimerHUDView()
+    ) {
+        self.scoreHUD = scoreHUD
+        self.comboHUD = comboHUD
+        self.timerHUD = timerHUD
+        super.init(frame: .zero)
+        setupUI()
+        setupConstraints()
+    }
+
+    @available(*, unavailable)
+    required init?(coder: NSCoder) {
+        fatalError("GameHUDView is code-only; this app uses no storyboards or nibs.")
+    }
+
+    // MARK: - Setup
+
+    private func setupUI() {
+        isUserInteractionEnabled = false
+
+        stack.axis = .vertical
+        stack.alignment = .center
+        stack.spacing = Theme.Spacing.xs / 2
+        // The score column is only as wide as its content, so the timer's
+        // clearance constraint has something real to measure against.
+        stack.setContentCompressionResistancePriority(.required, for: .horizontal)
+        // The combo view stays in the layout at alpha 0 rather than being
+        // hidden, and carries seed text so its height is reserved from the
+        // start. isHidden would collapse it out of the stack, and empty labels
+        // measure zero — either way the HUD's height would change, moving the
+        // physics ceiling up and down mid-round and shoving balls around every
+        // time a combo started or lapsed. A reserved row costs a little space
+        // and keeps the world still.
+        // Score and combo centred; the timer is placed separately below, on the
+        // pause button's row. Stacked directly above the score it read as part
+        // of it — a bare number sitting on top of "SCORE 40".
+        [scoreHUD, comboHUD].forEach { stack.addArrangedSubview($0) }
+
+        stack.translatesAutoresizingMaskIntoConstraints = false
+        timerHUD.translatesAutoresizingMaskIntoConstraints = false
+        addSubview(stack)
+        addSubview(timerHUD)
+    }
+
+    private func setupConstraints() {
+        NSLayoutConstraint.activate([
+            stack.topAnchor.constraint(equalTo: topAnchor),
+            stack.bottomAnchor.constraint(equalTo: bottomAnchor),
+            // Content-width and centred, rather than pinned to both edges, so the
+            // timer has room at the right and the score still reads as centred.
+            stack.centerXAnchor.constraint(equalTo: centerXAnchor),
+            stack.leadingAnchor.constraint(greaterThanOrEqualTo: leadingAnchor),
+
+            // Right edge, level with the top of the score: balances the pause
+            // button across the row.
+            timerHUD.trailingAnchor.constraint(equalTo: trailingAnchor),
+            timerHUD.topAnchor.constraint(equalTo: topAnchor),
+            // At accessibility sizes the score grows outward; yielding to it
+            // keeps the two from colliding mid-row.
+            timerHUD.leadingAnchor.constraint(greaterThanOrEqualTo: stack.trailingAnchor),
+        ])
+    }
+
+    // MARK: - Events
+
+    func apply(score event: ScoreEvent) {
+        scoreHUD.apply(event, emphasis: pendingEmphasis)
+    }
+
+    func apply(combo event: ComboEvent) {
+        pendingEmphasis = event.emphasis
+        comboHUD.apply(event)
+    }
+
+    func apply(remainingSeconds: Int) {
+        timerHUD.update(remainingSeconds: remainingSeconds)
+    }
+
+    func reset() {
+        pendingEmphasis = .normal
+        scoreHUD.reset()
+        comboHUD.reset()
+        timerHUD.reset()
+    }
+
+    // MARK: - Inspection
+
+    var displayedScoreText: String? { scoreHUD.displayedScoreText }
+    var displayedMultiplierText: String? { comboHUD.displayedMultiplierText }
+    var isComboVisible: Bool { comboHUD.isReadoutVisible }
+    var displayedTimeText: String? { timerHUD.displayedText }
+    var isTimerUrgent: Bool { timerHUD.isShowingUrgency }
+
+}

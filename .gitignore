@@ -1,0 +1,123 @@
+# =========================================================
+# macOS
+# =========================================================
+
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Finder metadata
+Icon?
+._*
+
+# =========================================================
+# Xcode
+# =========================================================
+
+# Xcode user-specific settings
+xcuserdata/
+
+# Xcode build products
+build/
+Build/
+DerivedData/
+
+# Xcode project user data
+*.xcuserstate
+*.xcscmblueprint
+*.xccheckout
+
+# Xcode workspace user data
+*.xcworkspace/xcuserdata/
+
+# =========================================================
+# Swift / Swift Package Manager
+# =========================================================
+
+.build/
+.swiftpm/
+Package.resolved
+
+# Xcode SPM generated files
+*.swiftdoc
+*.swiftmodule
+*.swiftsourceinfo
+
+# =========================================================
+# CocoaPods
+# =========================================================
+
+Pods/
+
+# CocoaPods generated files
+*.xcworkspace/xcuserdata/
+
+# =========================================================
+# Carthage
+# =========================================================
+
+Carthage/Build/
+
+# =========================================================
+# Fastlane
+# =========================================================
+
+fastlane/report.xml
+fastlane/Preview.html
+fastlane/screenshots/**/*.png
+fastlane/test_output/
+
+# =========================================================
+# Secrets / Environment
+# =========================================================
+
+.env
+.env.*
+!.env.example
+
+# Local configuration
+*.local
+*.secret
+
+# =========================================================
+# Certificates / Provisioning
+# =========================================================
+
+*.p12
+*.pfx
+*.cer
+*.mobileprovision
+*.provisionprofile
+
+# =========================================================
+# Logs
+# =========================================================
+
+*.log
+
+# =========================================================
+# Temporary files
+# =========================================================
+
+*.tmp
+*.temp
+*.swp
+*.swo
+*~
+
+# =========================================================
+# Claude Code
+# =========================================================
+
+# Claude local settings
+.claude/settings.local.json
+
+# Claude Code local/session files
+.claude/local/
+
+# =========================================================
+# AI / Local generated files
+# =========================================================
+
+# Ignore local AI/tool state
+.ai/

@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>UIApplicationSceneManifest</key>
+	<dict>
+		<key>UIApplicationSupportsMultipleScenes</key>
+		<false/>
+		<key>UISceneConfigurations</key>
+		<dict>
+			<key>UIWindowSceneSessionRoleApplication</key>
+			<array>
+				<dict>
+					<key>UISceneConfigurationName</key>
+					<string>Default Configuration</string>
+					<key>UISceneDelegateClassName</key>
+					<string>$(PRODUCT_MODULE_NAME).SceneDelegate</string>
+				</dict>
+			</array>
+		</dict>
+	</dict>
+	<!-- The Xcode target is named "coufistgade"; the product is Bouncy. Without
+	     this the home screen would show the project name. -->
+	<key>CFBundleDisplayName</key>
+	<string>Bouncy</string>
+	<!-- No encryption beyond what iOS itself provides, so declaring this here
+	     skips the export-compliance question on every single upload. -->
+	<key>ITSAppUsesNonExemptEncryption</key>
+	<false/>
+	<key>UILaunchScreen</key>
+	<dict>
+		<key>UIColorName</key>
+		<string>AppBackground</string>
+	</dict>
+	<!-- Without this the system caps SpriteKit at 60fps on ProMotion displays,
+	     regardless of SKView.preferredFramesPerSecond. -->
+	<key>CADisableMinimumFrameDuration</key>
+	<true/>
+</dict>
+</plist>
