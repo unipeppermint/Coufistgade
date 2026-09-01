@@ -154,6 +154,8 @@ final class GameScene: SKScene {
     var score: Int { round.total }
     var comboCount: Int { round.comboCount }
     var highestCombo: Int { round.highestCombo }
+    /// 本局有效碰撞次数。成就判定要用，此前只有 RoundState 内部可见。
+    var roundHits: Int { round.scoringCollisionCount }
 
 
     // MARK: - Round lifecycle

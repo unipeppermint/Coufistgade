@@ -179,9 +179,11 @@ Status: Completed
 
 Implement:
 - Sound
-- Music
 - Haptics
 - Reduce Motion
+
+Music was implemented as a row and then removed before submission — see
+`UI_DESIGN.md` §15.
 
 ## Phase 15 — Game Feel
 Status: Completed
@@ -228,11 +230,17 @@ Implement:
 ## Phase 18 — Localization
 Status: Completed
 
-Initial languages:
+Shipping languages:
 - English
-- Simplified Chinese
 
 Use String Catalog / modern localization infrastructure.
+
+Simplified Chinese was implemented and then removed before submission: the app
+ships English only. The string catalogs, `knownRegions`, and the tests that
+compared the two languages were all reverted to a single language. The
+infrastructure is unchanged, so adding a language back is a catalog edit rather
+than a rebuild — see the note in `LocalizationTests` about what a single-language
+catalog can and cannot prove.
 
 ## Phase 19 — QA
 Status: Completed
@@ -247,8 +255,10 @@ Test:
 - Lock / unlock
 - Restart
 - Quit
-- Dark mode
-- Light mode
+- Dark appearance (the only one: the window forces
+  `overrideUserInterfaceStyle = .dark`, so a light-mode device still gets the dark
+  palette. `QATests` asserts this rather than testing a light variant that cannot
+  occur.)
 - Different iPhone sizes
 - Performance
 - Accessibility
@@ -264,6 +274,23 @@ Prepare:
 - Privacy
 - Terms if required
 - Age rating
+
+## Phase 20a — Achievements
+Status: Completed
+
+Built after Phase 20, which is why it sits out of numeric order: the App Store
+metadata had already been drafted and had to be revised afterwards to stop saying
+there was nothing to unlock.
+
+Implement:
+- Ten achievements across four metrics (round score, round combo, round hits,
+  cumulative rounds)
+- Achievements screen, reached from Home
+- Newly unlocked achievements on the result screen
+- One unlock cue per round (sound + haptic)
+
+See `PRD.md` §10a for the design constraints and `UI_DESIGN.md` §15a for the
+screen.
 
 ## Phase 21 — Release Candidate
 Status: TODO

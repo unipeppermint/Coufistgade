@@ -189,6 +189,91 @@ final class ResultViewControllerTests: XCTestCase {
         XCTAssertLessThanOrEqual(playAgain?.frame.maxY ?? .infinity, sut.view.bounds.height)
         window.isHidden = true
     }
+
+    // MARK: - 滚动
+
+    private func scrollView(in view: UIView) -> UIScrollView? {
+        if let found = view as? UIScrollView { return found }
+        for subview in view.subviews {
+            if let found = scrollView(in: subview) { return found }
+        }
+        return nil
+    }
+
+    /// 在给定尺寸的窗口里真实呈现一次，滚动视图要有 bounds 才能量。
+    private func present(
+        _ result: RoundResult,
+        size: CGSize,
+        contentSize: UIContentSizeCategory = .large
+    ) -> (ResultViewController, UIWindow) {
+        let sut = ResultViewController(result: result, prefersReducedMotion: { true })
+        let window = UIWindow(frame: CGRect(origin: .zero, size: size))
+        window.rootViewController = sut
+        window.makeKeyAndVisible()
+        sut.setOverrideTraitCollection(
+            UITraitCollection(preferredContentSizeCategory: contentSize),
+            forChild: sut
+        )
+        sut.view.layoutIfNeeded()
+        return (sut, window)
+    }
+
+    func testContentTallerThanTheScreenBecomesScrollable() throws {
+        // 十条成就全解锁 + 无障碍字号：这是这一页最长的样子。
+        let result = RoundResult(
+            score: 4_200,
+            roundCombo: 12,
+            bestScore: 4_200,
+            bestCombo: 12,
+            isNewRecord: true,
+            unlockedAchievements: Achievement.all
+        )
+        let (sut, window) = present(
+            result,
+            size: CGSize(width: 393, height: 852),
+            contentSize: .accessibilityExtraExtraExtraLarge
+        )
+        defer { window.isHidden = true }
+
+        let scroll = try XCTUnwrap(scrollView(in: sut.view))
+        XCTAssertGreaterThan(
+            scroll.contentSize.height,
+            scroll.bounds.height,
+            "内容比视口高时应当可以滚动。"
+        )
+
+        // 关键在于「够得到」：以前这一段会被裁在屏幕外，现在应当落在可滚动范围内。
+        let home = try XCTUnwrap(view(ResultViewController.AccessibilityID.homeButton, in: sut.view))
+        let bottomInContent = home.convert(home.bounds, to: scroll).maxY
+        XCTAssertLessThanOrEqual(bottomInContent, scroll.contentSize.height)
+    }
+
+    func testContentThatFitsDoesNotScroll() throws {
+        let (sut, window) = present(makeResult(), size: CGSize(width: 393, height: 852))
+        defer { window.isHidden = true }
+
+        let scroll = try XCTUnwrap(scrollView(in: sut.view))
+        // 装得下时这一页仍然是静止的居中布局，不该多出可滚动的高度。
+        XCTAssertEqual(scroll.contentSize.height, scroll.bounds.height, accuracy: 0.5)
+    }
+
+    func testContentThatFitsStaysVerticallyCentred() throws {
+        let (sut, window) = present(makeResult(), size: CGSize(width: 393, height: 852))
+        defer { window.isHidden = true }
+
+        let scroll = try XCTUnwrap(scrollView(in: sut.view))
+        let score = try XCTUnwrap(label(ResultViewController.AccessibilityID.scoreValue, in: sut.view))
+        let badge = try XCTUnwrap(view(ResultViewController.AccessibilityID.newRecordBadge, in: sut.view))
+        let home = try XCTUnwrap(view(ResultViewController.AccessibilityID.homeButton, in: sut.view))
+
+        // 加滚动之前这一页是居中的，加了之后不应该变成顶端对齐。
+        let top = badge.convert(badge.bounds, to: scroll).minY
+        let bottom = home.convert(home.bounds, to: scroll).maxY
+        let above = top
+        let below = scroll.contentSize.height - bottom
+        XCTAssertEqual(above, below, accuracy: 2, "内容应当在视口里保持居中。")
+        XCTAssertGreaterThan(score.frame.height, 0)
+    }
 }
 
 final class PersistenceManagerTests: XCTestCase {

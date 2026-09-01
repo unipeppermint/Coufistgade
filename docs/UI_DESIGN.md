@@ -168,9 +168,47 @@ Use native UIKit settings patterns.
 
 Options:
 - Sound
-- Music
 - Haptics
 - Reduce Motion
+
+Music is intentionally not shown. It was specified here and built as a row, but
+no music exists in the app, so the switch stored a preference that nothing read
+and carried a "no music in this build" caption. A non-functional control plus
+build-language copy is what App Review 2.1 (App Completeness) looks for, so the
+row was removed before submission.
+
+`PersistenceManager.musicEnabled` is still stored and still registers a default
+of `true`, so restoring the row when music ships costs one enum case and two
+catalog strings — no schema change, and existing installs keep their value.
+
+## 15a. Achievements Screen
+
+Reached from a 44pt icon button on Home, beside Settings. Pushed, not presented:
+it is a short one-way trip, and the navigation stack already handles the back
+gesture.
+
+Layout:
+- Title and unlocked count in the header (`3 of 10`), so progress is legible
+  before any scrolling
+- One row per achievement, ten rows, in the catalog's difficulty order
+- Scroll view over a vertical stack, not a table view — ten fixed rows have
+  nothing to recycle, and cell reuse is what broke a screen once already
+  (`prepareForReuse` clearing a closure)
+
+Row anatomy:
+- Locked: dimmed title, detail line, lock glyph
+- Unlocked: full-contrast title, detail line, accent check
+- Career achievements add a progress bar; round achievements do not
+
+Constraint rule this screen exists to demonstrate: in a scroll view, the vertical
+axis binds to `contentLayoutGuide` (it decides how tall the content is) and the
+horizontal axis binds to `frameLayoutGuide` (width must come from the screen).
+Binding width to the content guide makes label wrapping and content width
+mutually dependent, and Auto Layout resolves it to something arbitrary.
+
+The result screen lists only what unlocked this round, using the same row view
+with the lock and progress bar suppressed. An empty list renders nothing at all —
+no heading, no gap — because most rounds unlock nothing.
 
 ## 16. Typography
 

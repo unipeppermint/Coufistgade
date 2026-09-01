@@ -29,6 +29,7 @@ protocol AudioPlaying: AnyObject {
     var isEnabled: Bool { get set }
     func playImpact(_ intensity: ImpactIntensity)
     func playComboMilestone()
+    func playAchievementUnlock()
 }
 
 final class AudioService: AudioPlaying {
@@ -47,6 +48,7 @@ final class AudioService: AudioPlaying {
     private let format: AVAudioFormat
     private var impactBuffers: [ImpactIntensity: AVAudioPCMBuffer] = [:]
     private var comboBuffer: AVAudioPCMBuffer?
+    private var achievementBuffer: AVAudioPCMBuffer?
     private var isRunning = false
 
     init(sampleRate: Double = 44_100) {
@@ -100,6 +102,11 @@ final class AudioService: AudioPlaying {
             amplitude: config.comboAmplitude,
             duration: config.comboDuration
         )
+        achievementBuffer = makeBuffer(
+            frequency: config.achievementFrequency,
+            amplitude: config.achievementAmplitude,
+            duration: config.achievementDuration
+        )
     }
 
     /// One percussive cue: a sine with a fast exponential decay.
@@ -144,6 +151,11 @@ final class AudioService: AudioPlaying {
         play(buffer)
     }
 
+    func playAchievementUnlock() {
+        guard let buffer = achievementBuffer else { return }
+        play(buffer)
+    }
+
     private func play(_ buffer: AVAudioPCMBuffer) {
         guard isEnabled, !players.isEmpty else { return }
         // Started lazily: an engine running while the game is silent wastes
@@ -182,6 +194,8 @@ final class AudioService: AudioPlaying {
     }
 
     func debugComboBuffer() -> AVAudioPCMBuffer? { comboBuffer }
+
+    func debugAchievementBuffer() -> AVAudioPCMBuffer? { achievementBuffer }
 
     var debugIsEngineRunning: Bool { engine.isRunning }
     #endif

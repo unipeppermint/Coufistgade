@@ -75,6 +75,7 @@ No mandatory tutorial is required for MVP.
 - Play button
 - Best score
 - Settings
+- Achievements
 
 ### Game
 - Player ball
@@ -93,13 +94,13 @@ No mandatory tutorial is required for MVP.
 - Score
 - Best score
 - Highest combo
+- Newly unlocked achievements
 - Play Again
 - Home
 - New Record feedback
 
 ### Settings
 - Sound
-- Music
 - Haptics
 - Reduce Motion
 
@@ -149,12 +150,38 @@ Potential future versions:
 - New themes
 - More particles
 - New sounds
-- Achievements
 - Daily challenges
 - Ball collection
 - Theme collection
 - Challenge mode
 - Game Center leaderboard
+
+## 10a. Achievements
+
+Shipped, not future. Ten achievements across four metrics.
+
+Purpose: give a player who has beaten their best score a second thing to aim at.
+The best score alone answers "can I do better"; achievements answer "what else is
+there", which is what keeps a sixty-second game open for a second session.
+
+Design constraints that came out of building it:
+
+- **Ten, fixed.** Not a growing list. The screen is a scroll view over a stack,
+  not a table, because there is nothing to recycle.
+- **The first one is nearly unmissable.** `firstPoints` (10 points in a round)
+  unlocks at the end of a player's first round, so the system announces itself
+  rather than staying hidden behind a threshold.
+- **Only career metrics show progress.** Scoring 300 last round does not bring
+  you closer to "500 in one round", so a progress bar there would be a lie. Only
+  cumulative rounds played has real progress.
+- **Unlock ids are persisted, never indices.** Inserting an achievement later
+  would shift every index and silently convert one player's unlock into another.
+- **One cue per round, not per unlock.** Three unlocks in a round play a single
+  sound; three in a row sounds like a fault.
+
+Metrics in use: round score, round combo, round hits, cumulative rounds. Best
+score and best combo were defined as metrics and then removed — no achievement
+used them, and an unused enum case reads as an oversight.
 
 ## 11. Monetization
 

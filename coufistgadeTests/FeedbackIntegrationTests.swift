@@ -16,6 +16,7 @@ final class FeedbackIntegrationTests: XCTestCase {
         var impacts = 0
         func playImpact(_ intensity: ImpactIntensity) { impacts += 1 }
         func playComboMilestone() {}
+        func playAchievementUnlock() {}
     }
 
     private var window: UIWindow?
@@ -42,9 +43,43 @@ final class FeedbackIntegrationTests: XCTestCase {
         return (scene, audio)
     }
 
-    private func run(for duration: TimeInterval) {
+    private func run(for duration: TimeInterval, each: (() -> Void)? = nil) {
         let deadline = Date().addingTimeInterval(duration)
         while Date() < deadline {
+            each?()
+            RunLoop.current.run(until: Date().addingTimeInterval(0.01))
+        }
+    }
+
+    /// Throws the ball repeatedly, varying the direction, sampling every frame.
+    ///
+    /// Two mistakes this avoids, both of which produced tests that passed while
+    /// measuring almost nothing:
+    ///
+    /// 1. Throwing in a fixed direction lets the ball wedge against a wall, where
+    ///    each identical re-throw pushes it back into the same corner.
+    /// 2. Sampling after a run interval rather than during it misses the burst
+    ///    entirely — effects live under a second, so the count is back to
+    ///    baseline by the time the interval ends.
+    private func throwRepeatedly(
+        _ ball: BallNode,
+        for duration: TimeInterval,
+        every interval: TimeInterval = 0.4,
+        each: (() -> Void)? = nil
+    ) {
+        let deadline = Date().addingTimeInterval(duration)
+        var nextThrow = Date()
+        var angle: CGFloat = 0.6
+        while Date() < deadline {
+            if Date() >= nextThrow {
+                angle += 1.1
+                ball.physicsBody?.velocity = CGVector(
+                    dx: 1800 * cos(angle),
+                    dy: 1800 * sin(angle)
+                )
+                nextThrow = Date().addingTimeInterval(interval)
+            }
+            each?()
             RunLoop.current.run(until: Date().addingTimeInterval(0.01))
         }
     }
@@ -60,12 +95,11 @@ final class FeedbackIntegrationTests: XCTestCase {
         let player = try XCTUnwrap(playerBall(in: scene))
 
         let baseline = scene.children.count
-        // Keep the ball moving hard for several seconds so hits keep landing.
-        for _ in 0..<6 {
-            player.physicsBody?.velocity = CGVector(dx: 1700, dy: 1200)
-            run(for: 0.7)
-        }
-        let peak = scene.children.count
+        var peak = baseline
+        // Sampled every frame, not after each throw: effects live under a second,
+        // so a reading taken between bursts reports the settled state and the
+        // peak would appear equal to the baseline.
+        throwRepeatedly(player, for: 4.0) { peak = max(peak, scene.children.count) }
 
         // Let every effect finish and remove itself.
         player.removeFromParent()
@@ -73,6 +107,9 @@ final class FeedbackIntegrationTests: XCTestCase {
         let settled = scene.children.count
 
         XCTAssertGreaterThan(audio.impacts, 0, "No collisions happened; test is vacuous.")
+        // Now that sampling happens during the burst, effects must actually be
+        // observed in flight — otherwise the cleanup claim below is untested.
+        XCTAssertGreaterThan(peak, baseline, "Effects never appeared despite \(audio.impacts) hits.")
         // baseline minus the player ball, which was removed above.
         XCTAssertEqual(settled, baseline - 1, "Effect nodes leaked: \(settled) vs \(baseline - 1)")
         print("MEASURED baseline=\(baseline) peak=\(peak) settled=\(settled) hits=\(audio.impacts)")
@@ -83,9 +120,7 @@ final class FeedbackIntegrationTests: XCTestCase {
         let player = try XCTUnwrap(playerBall(in: scene))
         var peakEffects = 0
 
-        for _ in 0..<8 {
-            player.physicsBody?.velocity = CGVector(dx: 1800, dy: 1300)
-            run(for: 0.4)
+        throwRepeatedly(player, for: 3.2) {
             let effects = scene.children.filter { $0 is SKEmitterNode || $0 is SKLabelNode }.count
             peakEffects = max(peakEffects, effects)
         }

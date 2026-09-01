@@ -1,0 +1,188 @@
+{
+  "sourceLanguage" : "en",
+  "strings" : {
+    "achievement.busyRound.detail" : {
+      "comment" : "Achievement goal: 25 scoring hits in one round",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Land 25 hits in a single round" } }
+      }
+    },
+    "achievement.busyRound.title" : {
+      "comment" : "Achievement name",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Busy Hands" } }
+      }
+    },
+    "achievement.century.detail" : {
+      "comment" : "Achievement goal: 100 points in one round",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Score 100 in a single round" } }
+      }
+    },
+    "achievement.century.title" : {
+      "comment" : "Achievement name",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Century" } }
+      }
+    },
+    "achievement.chainFour.detail" : {
+      "comment" : "Achievement goal: combo of 4",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Reach a 4 combo" } }
+      }
+    },
+    "achievement.chainFour.title" : {
+      "comment" : "Achievement name",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Getting Warm" } }
+      }
+    },
+    "achievement.chainSeven.detail" : {
+      "comment" : "Achievement goal: combo of 7",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Reach a 7 combo" } }
+      }
+    },
+    "achievement.chainSeven.title" : {
+      "comment" : "Achievement name",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "On a Roll" } }
+      }
+    },
+    "achievement.chainTen.detail" : {
+      "comment" : "Achievement goal: combo of 10, the top rung of the ladder",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Reach a 10 combo for the full 10x" } }
+      }
+    },
+    "achievement.chainTen.title" : {
+      "comment" : "Achievement name",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Unbroken" } }
+      }
+    },
+    "achievement.fiftyRounds.detail" : {
+      "comment" : "Achievement goal: 50 rounds played",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Play 50 rounds" } }
+      }
+    },
+    "achievement.fiftyRounds.title" : {
+      "comment" : "Achievement name",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Regular" } }
+      }
+    },
+    "achievement.fiveHundred.detail" : {
+      "comment" : "Achievement goal: 500 points in one round",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Score 500 in a single round" } }
+      }
+    },
+    "achievement.fiveHundred.title" : {
+      "comment" : "Achievement name",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Sharpshooter" } }
+      }
+    },
+    "achievement.firstPoints.detail" : {
+      "comment" : "Achievement goal: score at all. Deliberately trivial, so the system announces itself on the first round.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Score your first points" } }
+      }
+    },
+    "achievement.firstPoints.title" : {
+      "comment" : "Achievement name",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "First Contact" } }
+      }
+    },
+    "achievement.tenRounds.detail" : {
+      "comment" : "Achievement goal: 10 rounds played",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Play 10 rounds" } }
+      }
+    },
+    "achievement.tenRounds.title" : {
+      "comment" : "Achievement name",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Hooked" } }
+      }
+    },
+    "achievement.thousand.detail" : {
+      "comment" : "Achievement goal: 1000 points in one round",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Score 1000 in a single round" } }
+      }
+    },
+    "achievement.thousand.title" : {
+      "comment" : "Achievement name",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Four Figures" } }
+      }
+    },
+    "achievements.empty" : {
+      "comment" : "Shown when no achievements are unlocked yet",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Play a round to start unlocking these." } }
+      }
+    },
+    "achievements.locked" : {
+      "comment" : "VoiceOver state for a locked achievement row",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Locked" } }
+      }
+    },
+    "achievements.progressCount" : {
+      "comment" : "Header showing how many are unlocked, e.g. 3 of 10",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "%1$lld of %2$lld unlocked" } }
+      }
+    },
+    "achievements.title" : {
+      "comment" : "Title of the achievements screen, and the Home button that opens it",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Achievements" } }
+      }
+    },
+    "achievements.unlocked" : {
+      "comment" : "VoiceOver state for an unlocked achievement row",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Unlocked" } }
+      }
+    },
+    "result.newAchievements" : {
+      "comment" : "Caption above newly unlocked achievements on the result screen",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "UNLOCKED" } }
+      }
+    }
+  },
+  "version" : "1.0"
+}

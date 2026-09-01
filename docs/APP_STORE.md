@@ -16,6 +16,8 @@ Everything marked **NEEDS YOU** cannot be settled from the code.
 | Privacy manifest | `PrivacyInfo.xcprivacy` — UserDefaults declared, CA92.1 |
 | Encryption | `ITSAppUsesNonExemptEncryption = false` |
 | Launch screen | `UILaunchScreen` dict, no storyboard |
+| Languages | English only (`knownRegions` = en, Base) |
+| Achievements | Ten, local only — no Game Center, nothing to declare |
 | Signing team | **NEEDS YOU** — `DEVELOPMENT_TEAM` is unset |
 
 ## Name and subtitle
@@ -36,12 +38,13 @@ Check availability: "Bouncy" is a common word and the name may be taken.
 > keep hitting them, the multiplier climbs: 2x, 3x, 5x, all the way to 10x. Pause
 > too long and the chain breaks.
 >
-> There is nothing to learn and nothing to unlock. Pick it up, throw a ball,
-> and try to beat your best.
+> There is nothing to learn. Pick it up, throw a ball, and try to beat your best.
+> Ten achievements are waiting as you do.
 >
 > - Sixty-second rounds that fit in a spare moment
 > - Real physics: the ball has weight, and it bounces like it should
 > - Combo multipliers that reward keeping the ball moving
+> - Ten achievements, from your first points to a ten-chain
 > - One thumb, no buttons
 > - No accounts, no ads, no tracking. Your scores stay on your phone.
 
@@ -51,10 +54,12 @@ Check availability: "Bouncy" is a common word and the name may be taken.
 name or subtitle:
 
 ```
-physics,ball,arcade,casual,combo,reflex,onehand,timeattack,highscore,quickplay,minimal,offline
+physics,ball,arcade,casual,combo,reflex,onehand,timeattack,highscore,quickplay,offline,achievements
 ```
 
-That is 94 characters.
+That is 99 characters. `minimal` was dropped to make room for `achievements`:
+few people search a style word, and the achievements are shipping functionality
+that nothing else in the metadata pointed at.
 
 ## Age rating
 
@@ -84,8 +89,9 @@ ProMotion and real haptic-driven play are represented.
 Suggested set, in order:
 1. Mid-throw with a combo running — the core loop in one frame
 2. Home, showing a best score worth beating
-3. The result screen with NEW RECORD
-4. Settings, showing there is nothing to buy
+3. The result screen with NEW RECORD and a freshly unlocked achievement
+4. The achievements screen, part-way through the ten
+5. Settings, showing there is nothing to buy
 
 Use `-maxBalls` for a fuller playfield if a screenshot looks sparse. Turn off the
 DEBUG overlays first — `showsFPS` and `showsNodeCount` are compiled out of

@@ -86,10 +86,8 @@ enum Strings {
     static var settings: String { localized("Settings") }
     static var closeSettingsLabel: String { localized("Close Settings") }
     static var sound: String { localized("Sound") }
-    static var music: String { localized("Music") }
     static var haptics: String { localized("Haptics") }
     static var reduceMotion: String { localized("Reduce Motion") }
-    static var musicFooter: String { localized("No music in this build.") }
     static var hapticsFooter: String {
         localized("Vibration on impact. Unavailable on some devices.")
     }
@@ -120,8 +118,7 @@ enum Strings {
         "Combo %1$lld, %2$lld times", "Paused", "Time's up. Score %lld.",
         "Resume", "Quit",
         "NEW RECORD", "COMBO", "BEST COMBO", "Play Again", "Home",
-        "Settings", "Close Settings", "Sound", "Music", "Haptics", "Reduce Motion",
-        "No music in this build.",
+        "Settings", "Close Settings", "Sound", "Haptics", "Reduce Motion",
         "Vibration on impact. Unavailable on some devices.",
         "Also follows the system setting in Accessibility.",
     ]

@@ -36,17 +36,21 @@ final class GameViewController: UIViewController {
     private let haptics: HapticService
     private let store: PersistenceManager
     private let announcer: Announcer
+    private let achievements: AchievementTracker
 
     init(
         audio: AudioService = AudioService(),
         haptics: HapticService = HapticService(),
         store: PersistenceManager = PersistenceManager(),
-        announcer: Announcer = Announcer()
+        announcer: Announcer = Announcer(),
+        achievements: AchievementTracker? = nil
     ) {
         self.audio = audio
         self.haptics = haptics
         self.store = store
         self.announcer = announcer
+        // 默认与本控制器共用同一个 store，否则成就判定读到的是另一份数据。
+        self.achievements = achievements ?? AchievementTracker(store: store)
         super.init(nibName: nil, bundle: nil)
     }
 
@@ -255,19 +259,34 @@ extension GameViewController: GameSceneDelegate {
         // Filed before the result is built, so the badge comes from the write
         // itself rather than a second comparison that could disagree with it.
         let record = store.record(score: scene.score, combo: scene.highestCombo)
+
+        // 必须在 store.record 之后：生涯类成就（累计局数、历史最高）要把刚结束
+        // 这一局算进去，否则"累计 10 局"永远差一局才解锁。
+        let unlocked = achievements.evaluate(
+            RoundSummary(
+                score: scene.score,
+                highestCombo: scene.highestCombo,
+                hits: scene.roundHits
+            )
+        )
         presentResult(
             RoundResult(
                 score: scene.score,
                 roundCombo: scene.highestCombo,
                 bestScore: store.bestScore,
                 bestCombo: store.bestCombo,
-                isNewRecord: record.isNewBestScore
+                isNewRecord: record.isNewBestScore,
+                unlockedAchievements: unlocked
             )
         )
     }
 
     private func presentResult(_ result: RoundResult) {
-        let resultViewController = ResultViewController(result: result)
+        let resultViewController = ResultViewController(
+            result: result,
+            audio: audio,
+            haptics: haptics
+        )
         resultViewController.onPlayAgain = { [weak self] in
             // Pops back to this screen, which is still beneath, rather than
             // building a second game screen on top of the first.

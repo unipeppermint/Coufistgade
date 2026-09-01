@@ -2,7 +2,7 @@
 //  SettingsViewController.swift
 //  coufistgade
 //
-//  Sound, Music, Haptics, Reduce Motion (UI_DESIGN §15).
+//  Sound, Haptics, Reduce Motion (UI_DESIGN §15).
 //
 //  A grouped UITableView because §15 asks for native settings patterns: it gives
 //  Dynamic Type, VoiceOver grouping, and the platform's own row metrics for
@@ -24,17 +24,22 @@ final class SettingsViewController: UIViewController {
         static func toggle(_ setting: Setting) -> String { "settings.toggle.\(setting.rawValue)" }
     }
 
-    /// The four options, in the order §15 lists them.
+    /// The options, in the order §15 lists them.
+    ///
+    /// Music is absent deliberately. §15 lists it, but no music exists in the
+    /// app, so the row was a switch that saved a preference and then did
+    /// nothing — a non-functional control plus a "no music in this build"
+    /// caption, which is exactly what App Review 2.1 (App Completeness) reads
+    /// as an unfinished app. `PersistenceManager.musicEnabled` is still stored,
+    /// so adding the row back costs one case when music actually ships.
     enum Setting: String, CaseIterable {
         case sound
-        case music
         case haptics
         case reduceMotion
 
         var title: String {
             switch self {
             case .sound: Strings.sound
-            case .music: Strings.music
             case .haptics: Strings.haptics
             case .reduceMotion: Strings.reduceMotion
             }
@@ -45,7 +50,6 @@ final class SettingsViewController: UIViewController {
         var footer: String? {
             switch self {
             case .sound: nil
-            case .music: Strings.musicFooter
             case .haptics: Strings.hapticsFooter
             case .reduceMotion: Strings.reduceMotionFooter
             }
@@ -161,7 +165,6 @@ final class SettingsViewController: UIViewController {
     private func isOn(_ setting: Setting) -> Bool {
         switch setting {
         case .sound: store.soundEnabled
-        case .music: store.musicEnabled
         case .haptics: store.hapticsEnabled
         case .reduceMotion: store.reduceMotionEnabled
         }
@@ -170,7 +173,6 @@ final class SettingsViewController: UIViewController {
     private func set(_ setting: Setting, to isOn: Bool) {
         switch setting {
         case .sound: store.soundEnabled = isOn
-        case .music: store.musicEnabled = isOn
         case .haptics: store.hapticsEnabled = isOn
         case .reduceMotion: store.reduceMotionEnabled = isOn
         }

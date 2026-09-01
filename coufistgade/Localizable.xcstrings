@@ -10,12 +10,6 @@
             "state": "translated",
             "value": "%lld seconds remaining"
           }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "剩余 %lld 秒"
-          }
         }
       }
     },
@@ -27,12 +21,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Also follows the system setting in Accessibility."
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "同时遵循系统「辅助功能」中的设置。"
           }
         }
       }
@@ -46,12 +34,6 @@
             "state": "translated",
             "value": "BEST"
           }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "最高分"
-          }
         }
       }
     },
@@ -63,12 +45,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "BEST COMBO"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "最高连击"
           }
         }
       }
@@ -82,12 +58,6 @@
             "state": "translated",
             "value": "Best score %lld"
           }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "最高分 %lld"
-          }
         }
       }
     },
@@ -99,12 +69,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "COMBO"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "本局连击"
           }
         }
       }
@@ -118,12 +82,6 @@
             "state": "translated",
             "value": "COMBO %lld"
           }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "连击 %lld"
-          }
         }
       }
     },
@@ -135,12 +93,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Close Settings"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "关闭设置"
           }
         }
       }
@@ -154,12 +106,6 @@
             "state": "translated",
             "value": "Combo %1$lld, %2$lld times"
           }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "连击 %1$lld，%2$lld 倍"
-          }
         }
       }
     },
@@ -171,12 +117,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Combo %1$lld, %2$lld times multiplier"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "连击 %1$lld，%2$lld 倍"
           }
         }
       }
@@ -190,12 +130,6 @@
             "state": "translated",
             "value": "Drag the ball and release to throw it at the other balls."
           }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "拖动小球并松手，将其抛向其他小球。"
-          }
         }
       }
     },
@@ -207,12 +141,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Haptics"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "触感反馈"
           }
         }
       }
@@ -226,30 +154,6 @@
             "state": "translated",
             "value": "Home"
           }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "主菜单"
-          }
-        }
-      }
-    },
-    "Music": {
-      "comment": "Settings row: background music",
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Music"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "音乐"
-          }
         }
       }
     },
@@ -261,30 +165,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "NEW RECORD"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "新纪录"
-          }
-        }
-      }
-    },
-    "No music in this build.": {
-      "comment": "Footer under the Music row",
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "No music in this build."
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "此版本暂无音乐。"
           }
         }
       }
@@ -298,12 +178,6 @@
             "state": "translated",
             "value": "Open Settings"
           }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "打开设置"
-          }
         }
       }
     },
@@ -315,12 +189,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "PLAY"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "开始"
           }
         }
       }
@@ -334,12 +202,6 @@
             "state": "translated",
             "value": "Pause Game"
           }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "暂停游戏"
-          }
         }
       }
     },
@@ -351,12 +213,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Paused"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "已暂停"
           }
         }
       }
@@ -370,12 +226,6 @@
             "state": "translated",
             "value": "Play Again"
           }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "再来一局"
-          }
         }
       }
     },
@@ -387,12 +237,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Playfield"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "游戏区域"
           }
         }
       }
@@ -406,12 +250,6 @@
             "state": "translated",
             "value": "Quit"
           }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "退出"
-          }
         }
       }
     },
@@ -423,12 +261,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Reduce Motion"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "减弱动态效果"
           }
         }
       }
@@ -442,12 +274,6 @@
             "state": "translated",
             "value": "Resume"
           }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "继续"
-          }
         }
       }
     },
@@ -459,12 +285,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "SCORE"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "得分"
           }
         }
       }
@@ -478,12 +298,6 @@
             "state": "translated",
             "value": "Score %lld"
           }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "得分 %lld"
-          }
         }
       }
     },
@@ -495,12 +309,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Settings"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "设置"
           }
         }
       }
@@ -514,12 +322,6 @@
             "state": "translated",
             "value": "Sound"
           }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "音效"
-          }
         }
       }
     },
@@ -531,12 +333,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Start Game"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "开始游戏"
           }
         }
       }
@@ -550,12 +346,6 @@
             "state": "translated",
             "value": "Time's up. Score %lld."
           }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "时间到。得分 %lld。"
-          }
         }
       }
     },
@@ -567,12 +357,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Vibration on impact. Unavailable on some devices."
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "碰撞时震动。部分设备不支持。"
           }
         }
       }

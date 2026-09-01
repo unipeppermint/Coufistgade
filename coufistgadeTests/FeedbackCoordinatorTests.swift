@@ -15,6 +15,7 @@ final class FeedbackCoordinatorTests: XCTestCase {
         var milestones = 0
         func playImpact(_ intensity: ImpactIntensity) { impacts.append(intensity) }
         func playComboMilestone() { milestones += 1 }
+        func playAchievementUnlock() {}
     }
 
     private final class HapticSpy: HapticPlaying {
@@ -23,6 +24,7 @@ final class FeedbackCoordinatorTests: XCTestCase {
         var milestones = 0
         func playImpact(_ intensity: ImpactIntensity) { impacts.append(intensity) }
         func playComboMilestone() { milestones += 1 }
+        func playAchievementUnlock() {}
     }
 
     private struct SUT {

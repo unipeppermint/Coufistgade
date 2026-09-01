@@ -61,12 +61,41 @@ final class SettingsViewControllerTests: XCTestCase {
 
     // MARK: - Contents
 
-    func testShowsExactlyTheFourDocumentedOptions() {
-        // UI_DESIGN §15.
+    func testShowsExactlyTheThreeFunctionalOptions() {
+        // UI_DESIGN §15 lists four; Music is deliberately absent because no music
+        // exists to toggle. See the note on SettingsViewController.Setting.
         XCTAssertEqual(
             SettingsViewController.Setting.allCases.map(\.title),
-            [Strings.sound, Strings.music, Strings.haptics, Strings.reduceMotion]
+            [Strings.sound, Strings.haptics, Strings.reduceMotion]
         )
+    }
+
+    func testNoRowIsAnInertSwitch() throws {
+        // The reason Music went away: a switch that stores a preference nothing
+        // reads is a non-functional control, which App Review 2.1 treats as an
+        // unfinished app. Every row left must drive something real.
+        let (sut, store) = makeSUT()
+
+        for setting in SettingsViewController.Setting.allCases {
+            let toggle = try XCTUnwrap(toggle(for: setting, in: sut))
+            let before = isStored(setting, in: store)
+            toggle.isOn = !before
+            toggle.sendActions(for: .valueChanged)
+
+            XCTAssertNotEqual(
+                isStored(setting, in: store),
+                before,
+                "\(setting.title) does not write anything."
+            )
+        }
+    }
+
+    private func isStored(_ setting: SettingsViewController.Setting, in store: PersistenceManager) -> Bool {
+        switch setting {
+        case .sound: store.soundEnabled
+        case .haptics: store.hapticsEnabled
+        case .reduceMotion: store.reduceMotionEnabled
+        }
     }
 
     func testEveryOptionHasARowWithASwitch() {
@@ -123,7 +152,6 @@ final class SettingsViewControllerTests: XCTestCase {
 
         XCTAssertFalse(store.hapticsEnabled)
         XCTAssertTrue(store.soundEnabled, "Flipping Haptics changed Sound.")
-        XCTAssertTrue(store.musicEnabled)
         XCTAssertFalse(store.reduceMotionEnabled)
     }
 

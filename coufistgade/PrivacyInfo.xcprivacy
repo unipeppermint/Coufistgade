@@ -15,8 +15,8 @@
 	<key>NSPrivacyAccessedAPITypes</key>
 	<array>
 		<dict>
-			<!-- PersistenceManager stores the best score, best combo, game count
-			     and the four settings in UserDefaults. -->
+			<!-- PersistenceManager stores the best score, best combo, game count,
+			     unlocked achievement ids and the settings in UserDefaults. -->
 			<key>NSPrivacyAccessedAPIType</key>
 			<string>NSPrivacyAccessedAPICategoryUserDefaults</string>
 			<key>NSPrivacyAccessedAPITypeReasons</key>

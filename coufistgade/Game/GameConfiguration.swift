@@ -376,6 +376,16 @@ enum GameConfiguration {
             static let comboAmplitude: Double = 0.22
             static let comboDuration: Double = 0.10
 
+            /// 成就解锁提示音。
+            ///
+            /// 比连击提示音更高、更长：解锁是回合之外的事件，出现在结算页而非
+            /// 对局中，所以不必让位于其他声音，也应当明显区别于连击。
+            ///
+            /// 单独一组常量而不是复用 combo 那组：将来调其中一个不应牵动另一个。
+            static let achievementFrequency: Double = 1_320
+            static let achievementAmplitude: Double = 0.26
+            static let achievementDuration: Double = 0.18
+
             /// How fast a cue's envelope falls, as an exponential rate.
             ///
             /// MEASURED: at 18 the High cue was still above the audibility

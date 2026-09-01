@@ -65,4 +65,7 @@ enum DebugOptions {
     /// Boot straight into Settings. Touch cannot be automated, so this is the
     /// only way to reach the screen from a script.
     static var startInSettings: Bool { isSet("-startInSettings") }
+
+    /// 直接进成就页。首页入口目前挂在最高分区块上，脚本点不到。
+    static var startInAchievements: Bool { isSet("-startInAchievements") }
 }

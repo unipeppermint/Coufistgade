@@ -14,6 +14,7 @@ final class HomeViewController: UIViewController {
     enum AccessibilityID {
         static let playButton = "home.playButton"
         static let settingsButton = "home.settingsButton"
+        static let achievementsButton = "home.achievementsButton"
         static let bestScoreValue = "home.bestScoreValue"
     }
 
@@ -26,6 +27,7 @@ final class HomeViewController: UIViewController {
     private let bestScoreStack = UIStackView()
     private let playButton = BouncyButton()
     private let settingsButton = UIButton(type: .system)
+    private let achievementsButton = UIButton(type: .system)
 
     init(store: PersistenceManager = PersistenceManager()) {
         self.store = store
@@ -152,7 +154,29 @@ final class HomeViewController: UIViewController {
         settingsButton.accessibilityIdentifier = AccessibilityID.settingsButton
         settingsButton.accessibilityLabel = Strings.openSettingsLabel
 
-        [heroBallView, titleLabel, bestScoreStack, playButton, settingsButton].forEach {
+        // 镜像 settingsButton：同尺寸、同样式，放在左上角。
+        //
+        // 上一版把成就入口藏在最高分区块上（读不到布局代码，不敢加控件），玩家
+        // 不会想到去点。放在顶栏另一侧不需要动既有的纵向约束链。
+        var achievementsConfig = UIButton.Configuration.plain()
+        achievementsConfig.image = UIImage(
+            systemName: "trophy.fill",
+            withConfiguration: UIImage.SymbolConfiguration(
+                pointSize: Theme.Layout.settingsIconPointSize
+            )
+        )
+        achievementsConfig.baseForegroundColor = UIColor(resource: .textSecondary)
+        achievementsConfig.contentInsets = .zero
+        achievementsButton.configuration = achievementsConfig
+        achievementsButton.backgroundColor = UIColor(resource: .surface)
+        achievementsButton.layer.cornerRadius = Theme.Layout.minimumTouchTarget / 2
+        achievementsButton.accessibilityIdentifier = AccessibilityID.achievementsButton
+        achievementsButton.accessibilityLabel = AchievementStrings.screenTitle
+
+        [
+            heroBallView, titleLabel, bestScoreStack, playButton,
+            settingsButton, achievementsButton,
+        ].forEach {
             $0.translatesAutoresizingMaskIntoConstraints = false
             view.addSubview($0)
         }
@@ -201,6 +225,20 @@ final class HomeViewController: UIViewController {
             ),
             settingsButton.widthAnchor.constraint(equalToConstant: Theme.Layout.minimumTouchTarget),
             settingsButton.heightAnchor.constraint(equalToConstant: Theme.Layout.minimumTouchTarget),
+
+            // 与 settingsButton 同高，居于另一侧。刻意不参与纵向链：titleLabel 仍
+            // 挂在 settingsButton 下方，加这个按钮不改变既有的布局关系。
+            achievementsButton.topAnchor.constraint(equalTo: settingsButton.topAnchor),
+            achievementsButton.leadingAnchor.constraint(
+                equalTo: safe.leadingAnchor,
+                constant: Theme.Spacing.m
+            ),
+            achievementsButton.widthAnchor.constraint(
+                equalToConstant: Theme.Layout.minimumTouchTarget
+            ),
+            achievementsButton.heightAnchor.constraint(
+                equalToConstant: Theme.Layout.minimumTouchTarget
+            ),
 
             titleLabel.topAnchor.constraint(
                 equalTo: settingsButton.bottomAnchor,
@@ -263,6 +301,11 @@ final class HomeViewController: UIViewController {
     private func setupActions() {
         playButton.addTarget(self, action: #selector(handlePlayTapped), for: .touchUpInside)
         settingsButton.addTarget(self, action: #selector(handleSettingsTapped), for: .touchUpInside)
+        achievementsButton.addTarget(
+            self,
+            action: #selector(handleAchievementsTapped),
+            for: .touchUpInside
+        )
     }
 
     // MARK: - Data
@@ -282,4 +325,9 @@ final class HomeViewController: UIViewController {
     @objc private func handleSettingsTapped() {
         navigationController?.pushViewController(SettingsViewController(), animated: true)
     }
+
+    @objc private func handleAchievementsTapped() {
+        navigationController?.pushViewController(AchievementsViewController(), animated: true)
+    }
+
 }

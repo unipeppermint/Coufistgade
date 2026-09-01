@@ -53,6 +53,7 @@ Primary screens:
 - GameViewController
 - ResultViewController
 - SettingsViewController
+- AchievementsViewController
 
 Each ViewController should have one clear responsibility.
 
@@ -207,14 +208,33 @@ Do not trigger haptics every frame.
 MVP:
 UserDefaults
 
-Persist:
+Persist (names as they appear in `PersistenceManager.Key`, all prefixed
+`bouncy.`):
 - bestScore
-- highestCombo
+- bestCombo
 - totalGames
 - soundEnabled
-- musicEnabled
-- hapticEnabled
+- musicEnabled — stored but not shown; see `UI_DESIGN.md` §15
+- hapticsEnabled
 - reduceMotionEnabled
+- unlockedAchievements
+
+These strings are a storage schema, not labels: renaming one silently resets that
+value for everyone who already played.
+
+## 19a. AchievementTracker
+
+Pure logic over `PersistenceManager`. Owns no UI and no state of its own: it reads
+the round summary plus the store, and answers two questions — what unlocked just
+now, and how far along a career achievement is.
+
+Ordering constraint: evaluation must run **after** `store.record(...)`. Career
+metrics have to include the round that just ended, or "10 rounds played" stays one
+round short forever. The call site carries a comment saying so.
+
+`Achievement.all` is a table, not a switch: the whole difficulty curve is
+reviewable in one place, and changing a target touches no logic. Same approach as
+`GameConfiguration.Combo.multiplierLadder`.
 
 ## 20. Configuration
 

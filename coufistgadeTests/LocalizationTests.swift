@@ -2,13 +2,19 @@
 //  LocalizationTests.swift
 //  coufistgadeTests
 //
-//  ROADMAP Phase 18. Checks the two shipped languages against each other.
+//  ROADMAP Phase 18. The app ships English only.
 //
-//  The failure mode worth guarding is not a clumsy translation — it is a format
-//  specifier that differs between languages. `String(format:)` reads its
-//  arguments according to the format string, so a zh-Hans entry with the wrong
-//  specifier reads past the arguments given and crashes, in that language only,
-//  on a device nobody tested.
+//  Simplified Chinese was removed, and with it the checks that compared two
+//  languages against each other — a format specifier that differs between
+//  languages was the failure worth guarding, and there is no second language to
+//  differ from. What remains guards the English catalog itself: every key the app
+//  asks for exists, nothing is stranded in the catalog unused, and multi-argument
+//  formats stay positional so a translation can be added later without reopening
+//  every string.
+//
+//  Note the limit of a single-language catalog: for English the value equals the
+//  key, so "the key resolved" and "the key is missing" look identical. Presence is
+//  therefore proven from the compiled catalog, not from the returned string.
 //
 
 import XCTest
@@ -16,20 +22,28 @@ import XCTest
 
 final class LocalizationTests: XCTestCase {
 
-    private let languages = ["en", "zh-Hans"]
-
-    private func bundle(for language: String) throws -> Bundle {
+    private func englishBundle() throws -> Bundle {
         let path = try XCTUnwrap(
-            Bundle.main.path(forResource: language, ofType: "lproj"),
-            "\(language).lproj is missing — the language is not shipping."
+            Bundle.main.path(forResource: "en", ofType: "lproj"),
+            "en.lproj is missing — the language is not shipping."
         )
         return try XCTUnwrap(Bundle(path: path))
     }
 
-    private func value(_ key: String, in language: String) throws -> String {
-        // A missing key resolves to the key itself, which is how absence is
-        // detected below.
-        try bundle(for: language).localizedString(forKey: key, value: nil, table: "Localizable")
+    private func value(_ key: String) throws -> String {
+        try englishBundle().localizedString(forKey: key, value: nil, table: "Localizable")
+    }
+
+    /// The compiled English table, or nil on toolchains that emit binary .strings.
+    private func compiledTable() throws -> [String: String]? {
+        let bundle = try englishBundle()
+        guard let url = bundle.url(forResource: "Localizable", withExtension: "strings"),
+              let data = try? Data(contentsOf: url),
+              let plist = try? PropertyListSerialization.propertyList(
+                  from: data, options: [], format: nil
+              ) as? [String: String]
+        else { return nil }
+        return plist
     }
 
     /// Format specifiers in order of appearance, positional index stripped.
@@ -67,77 +81,62 @@ final class LocalizationTests: XCTestCase {
         return found
     }
 
-    // MARK: - Both languages ship
+    // MARK: - The language ships
 
-    func testBothDocumentedLanguagesAreInTheBundle() throws {
-        // ROADMAP Phase 18: English and Simplified Chinese.
-        for language in languages {
-            XCTAssertNoThrow(try bundle(for: language), "\(language) is not shipping.")
-        }
+    func testEnglishIsInTheBundle() throws {
+        XCTAssertNoThrow(try englishBundle(), "en is not shipping.")
+    }
+
+    func testNoOtherLanguageIsBundled() throws {
+        // Chinese was removed. A stale .lproj left in the product would still be
+        // offered by iOS on a zh device, showing a half-translated app.
+        let others = try XCTUnwrap(
+            Bundle.main.paths(forResourcesOfType: "lproj", inDirectory: nil) as [String]?
+        )
+        .map { URL(fileURLWithPath: $0).deletingPathExtension().lastPathComponent }
+        .filter { $0 != "en" && $0 != "Base" }
+
+        XCTAssertTrue(others.isEmpty, "Unexpected localisations still bundled: \(others.sorted())")
     }
 
     // MARK: - Coverage
 
-    func testEveryKeyTheAppUsesExistsInBothLanguages() throws {
+    func testEveryKeyTheAppUsesExistsInTheCatalog() throws {
+        // For English the value equals the key, so a missing entry cannot be seen
+        // in what NSLocalizedString returns. The compiled table is the only place
+        // absence is visible.
+        guard let table = try compiledTable() else {
+            throw XCTSkip("Binary .strings on this toolchain; coverage cannot be read.")
+        }
+
         for key in Strings.allKeys {
-            for language in languages {
-                let resolved = try value(key, in: language)
-                // A key resolving to itself means no entry: for en that is the
-                // intended value, so only zh-Hans can be judged this way.
-                if language != "en" {
-                    XCTAssertNotEqual(
-                        resolved, key,
-                        "\(language) has no translation for \"\(key)\"."
-                    )
-                }
-                XCTAssertFalse(resolved.isEmpty, "\(language) has an empty value for \"\(key)\".")
-            }
+            XCTAssertNotNil(table[key], "\"\(key)\" is not in the catalog.")
+            XCTAssertFalse(
+                (table[key] ?? "").isEmpty,
+                "\"\(key)\" has an empty value."
+            )
         }
     }
 
     func testTheCatalogHasNoKeysTheAppNeverUses() throws {
-        // Dead entries are how a catalog drifts: a renamed key leaves the old
-        // one translated and paid for, and nothing points at it.
-        let english = try bundle(for: "en")
-        let used = Set(Strings.allKeys)
-
-        guard let table = english.url(forResource: "Localizable", withExtension: "strings"),
-              let contents = try? Data(contentsOf: table),
-              let plist = try? PropertyListSerialization.propertyList(
-                  from: contents, options: [], format: nil
-              ) as? [String: String]
-        else {
-            // Binary .strings on some toolchains; coverage above still holds.
-            return
+        // Dead entries are how a catalog drifts: a renamed key leaves the old one
+        // behind, and nothing points at it.
+        guard let table = try compiledTable() else {
+            throw XCTSkip("Binary .strings on this toolchain; coverage cannot be read.")
         }
 
-        let unused = Set(plist.keys).subtracting(used)
+        let unused = Set(table.keys).subtracting(Set(Strings.allKeys))
         XCTAssertTrue(unused.isEmpty, "Catalog keys nothing uses: \(unused.sorted())")
     }
 
     // MARK: - Format safety
 
-    func testFormatSpecifiersMatchAcrossLanguages() throws {
-        for key in Strings.allKeys {
-            let englishSpecifiers = specifiers(of: try value(key, in: "en"))
-            for language in languages.dropFirst() {
-                let translated = specifiers(of: try value(key, in: language))
-                // Order may differ via positional arguments; the multiset may not.
-                XCTAssertEqual(
-                    englishSpecifiers.sorted(), translated.sorted(),
-                    "\"\(key)\": en has \(englishSpecifiers), \(language) has \(translated). "
-                        + "A mismatch crashes String(format:) in \(language) only."
-                )
-            }
-        }
-    }
-
     func testMultiArgumentStringsUsePositionalSpecifiers() throws {
-        // Two bare %lld cannot be reordered, and word order differs between these
-        // two languages — so anything with more than one argument must be
-        // positional or a translator has no way to move them.
+        // Two bare %lld cannot be reordered. Nothing needs reordering while English
+        // is the only language, but a translation added later would be stuck with
+        // English word order — so the requirement stays.
         for key in Strings.allKeys {
-            let format = try value(key, in: "en")
+            let format = try value(key)
             guard specifiers(of: format).count > 1 else { continue }
             XCTAssertTrue(
                 format.contains("$"),
@@ -148,38 +147,34 @@ final class LocalizationTests: XCTestCase {
 
     // MARK: - Rendering
 
-    func testInterpolatedStringsRenderTheirValuesInBothLanguages() throws {
-        // Proves the specifiers actually consume the arguments, which the static
-        // comparison above cannot.
-        for language in languages {
-            let bundle = try self.bundle(for: language)
+    func testInterpolatedStringsRenderTheirValues() throws {
+        // Proves the specifiers actually consume the arguments, which inspecting
+        // the format string cannot.
+        let bundle = try englishBundle()
 
-            let score = String(
-                format: bundle.localizedString(forKey: "Score %lld", value: nil, table: "Localizable"),
-                locale: Locale(identifier: language),
-                250
-            )
-            XCTAssertTrue(score.contains("250"), "\(language): score not rendered — \(score)")
+        let score = String(
+            format: bundle.localizedString(forKey: "Score %lld", value: nil, table: "Localizable"),
+            locale: Locale(identifier: "en"),
+            250
+        )
+        XCTAssertTrue(score.contains("250"), "Score not rendered — \(score)")
 
-            let combo = String(
-                format: bundle.localizedString(
-                    forKey: "Combo %1$lld, %2$lld times",
-                    value: nil,
-                    table: "Localizable"
-                ),
-                locale: Locale(identifier: language),
-                7, 5
-            )
-            XCTAssertTrue(combo.contains("7"), "\(language): combo count not rendered — \(combo)")
-            XCTAssertTrue(combo.contains("5"), "\(language): multiplier not rendered — \(combo)")
-        }
+        let combo = String(
+            format: bundle.localizedString(
+                forKey: "Combo %1$lld, %2$lld times",
+                value: nil,
+                table: "Localizable"
+            ),
+            locale: Locale(identifier: "en"),
+            7, 5
+        )
+        XCTAssertTrue(combo.contains("7"), "Combo count not rendered — \(combo)")
+        XCTAssertTrue(combo.contains("5"), "Multiplier not rendered — \(combo)")
     }
 
     // MARK: - Accessors
 
-    func testEveryAccessorResolvesRatherThanEchoingItsKey() {
-        // Catches a typo in Strings.swift: a key absent from the catalog renders
-        // verbatim, which looks plausible in English and wrong everywhere else.
+    func testEveryAccessorReturnsSomething() {
         let resolved: [String] = [
             Strings.bestCaption, Strings.play, Strings.startGameLabel,
             Strings.openSettingsLabel, Strings.scoreCaption, Strings.pauseGameLabel,
@@ -187,15 +182,15 @@ final class LocalizationTests: XCTestCase {
             Strings.resume, Strings.quit, Strings.newRecord,
             Strings.comboCaptionPlain, Strings.bestComboCaption, Strings.playAgain,
             Strings.home, Strings.settings, Strings.closeSettingsLabel,
-            Strings.sound, Strings.music, Strings.haptics, Strings.reduceMotion,
-            Strings.musicFooter, Strings.hapticsFooter, Strings.reduceMotionFooter,
+            Strings.sound, Strings.haptics, Strings.reduceMotion,
+            Strings.hapticsFooter, Strings.reduceMotionFooter,
         ]
 
         for string in resolved {
             XCTAssertFalse(string.isEmpty)
         }
-        // Every accessor's key must be declared, or the coverage test above is
-        // checking a shorter list than the app actually uses.
+        // Whether each accessor's key is actually in the catalog is proven by
+        // testEveryKeyTheAppUsesExistsInTheCatalog; this only guards the list.
         XCTAssertEqual(Set(Strings.allKeys).count, Strings.allKeys.count, "Duplicate keys.")
     }
 

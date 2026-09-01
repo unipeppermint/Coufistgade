@@ -33,6 +33,8 @@ final class SceneDelegate: UIResponder, UIWindowSceneDelegate {
             navigationController.pushViewController(GameViewController(), animated: false)
         } else if DebugOptions.startInSettings {
             navigationController.pushViewController(SettingsViewController(), animated: false)
+        } else if DebugOptions.startInAchievements {
+            navigationController.pushViewController(AchievementsViewController(), animated: false)
         }
         #endif
 

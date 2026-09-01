@@ -20,6 +20,7 @@ protocol HapticPlaying: AnyObject {
     var isEnabled: Bool { get set }
     func playImpact(_ intensity: ImpactIntensity)
     func playComboMilestone()
+    func playAchievementUnlock()
 }
 
 final class HapticService: HapticPlaying {
@@ -81,6 +82,16 @@ final class HapticService: HapticPlaying {
     }
 
     func playComboMilestone() {
+        guard shouldPlay() else { return }
+        notificationGenerator.notificationOccurred(.success)
+        notificationGenerator.prepare()
+    }
+
+    /// 成就解锁。
+    ///
+    /// 同样用 .success，但走的是同一个限流器：解锁发生在结算页，此时对局已停，
+    /// 不会和碰撞震动挤在一起。限流仍然保留，因为一局可能同时解锁多条成就。
+    func playAchievementUnlock() {
         guard shouldPlay() else { return }
         notificationGenerator.notificationOccurred(.success)
         notificationGenerator.prepare()

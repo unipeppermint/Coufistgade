@@ -27,6 +27,7 @@ struct PersistenceManager {
         static let musicEnabled = "bouncy.musicEnabled"
         static let hapticsEnabled = "bouncy.hapticsEnabled"
         static let reduceMotionEnabled = "bouncy.reduceMotionEnabled"
+        static let unlockedAchievements = "bouncy.unlockedAchievements"
     }
 
     private let defaults: UserDefaults
@@ -42,6 +43,24 @@ struct PersistenceManager {
             Key.hapticsEnabled: true,
             Key.reduceMotionEnabled: false,
         ])
+    }
+
+    // MARK: - Achievements
+
+    /// 已解锁成就的 id。
+    ///
+    /// 存 id 而不是索引或位掩码：成就表将来会插入新条目，索引会整体错位，把玩家
+    /// 已拿到的成就变成别的成就。
+    var unlockedAchievementIDs: Set<String> {
+        Set(defaults.stringArray(forKey: Key.unlockedAchievements) ?? [])
+    }
+
+    /// 追加解锁，已存在的忽略。
+    func unlockAchievements(_ ids: [String]) {
+        guard !ids.isEmpty else { return }
+        let merged = unlockedAchievementIDs.union(ids)
+        // 排序后再存，让 UserDefaults 的内容可预测——调试和测试都更好读。
+        defaults.set(merged.sorted(), forKey: Key.unlockedAchievements)
     }
 
     // MARK: - Records
@@ -78,8 +97,11 @@ struct PersistenceManager {
         nonmutating set { defaults.set(newValue, forKey: Key.soundEnabled) }
     }
 
-    /// Stored per §19. No music exists yet, so nothing reads it — the setting is
-    /// persisted so Phase 14 can present it without a schema change.
+    /// Stored, but deliberately not shown. No music exists in the app, so nothing
+    /// reads this — the Settings row was removed because a switch that saves a
+    /// preference and then does nothing reads as an unfinished app to App Review
+    /// (2.1 App Completeness). The key stays so the row can come back without a
+    /// schema change, and so existing installs keep whatever they had set.
     var musicEnabled: Bool {
         get { defaults.bool(forKey: Key.musicEnabled) }
         nonmutating set { defaults.set(newValue, forKey: Key.musicEnabled) }

@@ -17,10 +17,12 @@ final class SilentAudio: AudioPlaying {
     var isEnabled = false
     func playImpact(_ intensity: ImpactIntensity) {}
     func playComboMilestone() {}
+    func playAchievementUnlock() {}
 }
 
 final class SilentHaptics: HapticPlaying {
     var isEnabled = false
     func playImpact(_ intensity: ImpactIntensity) {}
     func playComboMilestone() {}
+    func playAchievementUnlock() {}
 }
