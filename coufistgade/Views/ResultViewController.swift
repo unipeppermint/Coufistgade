@@ -38,16 +38,24 @@ final class ResultViewController: UIViewController {
     private let homeButton = UIButton(type: .system)
     private let stack = UIStackView()
     private let scrollView = UIScrollView()
+    /// 结算转轴（GAMEPLAY §27）。本局没有转轴结果时不会被插进视图树。
+    private let reelPanel = ReelPanelView()
 
     private let prefersReducedMotion: () -> Bool
     private let audio: AudioPlaying
     private let haptics: HapticPlaying
+    private let announcer: Announcer
+
+    /// 爬分用的计时器。存下来是为了在页面消失时停掉——玩家可能在爬分途中就点了
+    /// 「再来一局」。
+    private var countUpTimer: Timer?
 
     init(
         result: RoundResult,
         prefersReducedMotion: @escaping () -> Bool = { MotionPreference.isReduced },
         audio: AudioPlaying = SilentAudio(),
-        haptics: HapticPlaying = SilentHaptics()
+        haptics: HapticPlaying = SilentHaptics(),
+        announcer: Announcer = Announcer()
     ) {
         self.result = result
         self.prefersReducedMotion = prefersReducedMotion
@@ -55,7 +63,12 @@ final class ResultViewController: UIViewController {
         // 真实调用点（GameViewController）会传入实际服务。
         self.audio = audio
         self.haptics = haptics
+        self.announcer = announcer
         super.init(nibName: nil, bundle: nil)
+    }
+
+    deinit {
+        countUpTimer?.invalidate()
     }
 
     @available(*, unavailable)
@@ -122,11 +135,100 @@ final class ResultViewController: UIViewController {
 
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
+        // 转轴先揭晓，成就与破纪录随后——顺序即因果：奖励分要先落进总分，
+        // 「新纪录」才有理由出现。
+        revealReelsIfNeeded()
         // 在 viewDidAppear 而不是回合结束时播放：解锁提示应当和玩家看到成就的
         // 那一刻对齐，而不是提前到页面还没出现的时候。
         playUnlockFeedbackIfNeeded()
         guard result.isNewRecord else { return }
         celebrateRecord()
+    }
+
+    override func viewWillDisappear(_ animated: Bool) {
+        super.viewWillDisappear(animated)
+        // 玩家可能在爬分途中就点了「再来一局」。计时器必须停，否则它会继续改写
+        // 一个已经离场的标签。
+        countUpTimer?.invalidate()
+        countUpTimer = nil
+    }
+
+    // MARK: - 转轴
+
+    /// 播一次转轴揭晓，收尾时把总分爬上去。
+    ///
+    /// 结果早在回合结束时就定好了（GameViewController 算的），这里只负责呈现——
+    /// 动画不改变任何数值。
+    private func revealReelsIfNeeded() {
+        guard let outcome = result.reelOutcome else { return }
+
+        reelPanel.reveal(
+            outcome,
+            audio: audio,
+            haptics: haptics,
+            reducedMotion: prefersReducedMotion()
+        ) { [weak self] in
+            self?.countUpScore(to: self?.result.score ?? 0)
+            self?.announceReelOutcome(outcome)
+        }
+    }
+
+    /// 总分从对局分爬到含奖励的总分。
+    ///
+    /// 这是奖励分的兑现时刻：没有这一下，那笔奖励只是页面上多出来的一行字，
+    /// 玩家不会觉得它是自己的分。
+    private func countUpScore(to finalScore: Int) {
+        let start = startingScore
+        guard finalScore > start else {
+            // 没有可爬的（奖励为 0），直接确保标签是终值。
+            setScoreLabel(finalScore)
+            return
+        }
+
+        guard !prefersReducedMotion() else {
+            // 降级：直接给终值。爬分是纯动效，去掉它不损失任何信息。
+            setScoreLabel(finalScore)
+            return
+        }
+
+        let steps = GameConfiguration.Reels.scoreCountUpSteps
+        let interval = GameConfiguration.Reels.scoreCountUpDuration / Double(steps)
+        var step = 0
+
+        countUpTimer?.invalidate()
+        countUpTimer = Timer.scheduledTimer(withTimeInterval: interval, repeats: true) {
+            [weak self] timer in
+            guard let self else {
+                timer.invalidate()
+                return
+            }
+            step += 1
+            let progress = Double(step) / Double(steps)
+            // 末步直接落在终值上，不靠插值凑——浮点数在这里差 1 分都会很显眼。
+            let value = step >= steps
+                ? finalScore
+                : start + Int((Double(finalScore - start) * progress).rounded())
+            self.setScoreLabel(value)
+
+            guard step >= steps else { return }
+            timer.invalidate()
+            self.countUpTimer = nil
+        }
+    }
+
+    /// 把转轴结果播报给 VoiceOver。
+    ///
+    /// 用 announceImmediately：这一页刚出现时成就解锁可能刚播过一句，而转轴的
+    /// 奖励分是玩家必须知道的——它改变了上面那个总分。
+    private func announceReelOutcome(_ outcome: ReelOutcome) {
+        guard !outcome.isBlank else { return }
+        if outcome.isAligned {
+            announcer.announceImmediately(
+                ReelStrings.lineAnnouncement(symbol: outcome.floorSymbol, bonus: outcome.bonus)
+            )
+        } else {
+            announcer.announceImmediately(ReelStrings.bonusAnnouncement(outcome.bonus))
+        }
     }
 
     /// 本局有新解锁时播放提示音与震动。
@@ -208,14 +310,20 @@ final class ResultViewController: UIViewController {
         stack.axis = .vertical
         stack.alignment = .fill
         stack.spacing = Theme.Spacing.s
-        [
+        var arranged: [UIView] = [
             newRecordLabel,
             scoreCaptionLabel,
             scoreValueLabel,
-            comboRow,
-            bestRow,
-            bestComboRow,
-        ].forEach { stack.addArrangedSubview($0) }
+        ]
+        // 转轴紧贴在总分下面：它要改的就是上面那个数，两者中间不该隔着别的统计。
+        //
+        // 本局没有转轴结果时整块不插入，而不是插入后隐藏——旧的 RoundResult
+        // （默认 reelOutcome 为 nil）在这一页上应当和加转轴之前一模一样。
+        if result.reelOutcome != nil {
+            arranged.append(reelPanel)
+        }
+        arranged.append(contentsOf: [comboRow, bestRow, bestComboRow])
+        arranged.forEach { stack.addArrangedSubview($0) }
         // The score block and the actions are separate groups, so the actions sit
         // apart rather than reading as another statistic.
         stack.setCustomSpacing(Theme.Spacing.l, after: bestComboRow)
@@ -290,12 +398,35 @@ final class ResultViewController: UIViewController {
     }
 
     private func populate() {
-        scoreValueLabel.text = "\(result.score)"
-        scoreValueLabel.accessibilityLabel = Strings.scoreLabel(result.score)
+        // 起始值是**对局分**，不是总分：转轴揭晓完毕后再爬到含奖励的总分，
+        // 那一下才是奖励分的兑现（见 revealReelsIfNeeded）。
+        //
+        // 没有转轴结果时 baseScore == score，所以这一页和加转轴之前完全一样。
+        setScoreLabel(startingScore)
         comboRow.value = "\(result.roundCombo)"
         bestRow.value = "\(result.bestScore)"
         bestComboRow.value = "\(result.bestCombo)"
         addUnlockedAchievementsIfAny()
+
+        // 终态先摆上，让页面在动画开始前就是完整的：VoiceOver 用户与截图都不该
+        // 看到一个空面板。reveal 会从这个状态接手。
+        if let outcome = result.reelOutcome {
+            reelPanel.configure(outcome)
+        }
+    }
+
+    /// 大号总分的起点。
+    ///
+    /// 只有在真的要爬分时才从 baseScore 起：奖励为 0 时爬分是从同一个数爬到同一个
+    /// 数，白跑一趟计时器。
+    private var startingScore: Int {
+        guard let outcome = result.reelOutcome, !outcome.isBlank else { return result.score }
+        return result.baseScore
+    }
+
+    private func setScoreLabel(_ score: Int) {
+        scoreValueLabel.text = "\(score)"
+        scoreValueLabel.accessibilityLabel = Strings.scoreLabel(score)
     }
 
     // MARK: - New record

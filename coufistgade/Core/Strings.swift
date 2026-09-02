@@ -95,6 +95,22 @@ enum Strings {
         localized("Also follows the system setting in Accessibility.")
     }
 
+    // MARK: - Reset progress
+
+    static var resetProgress: String { localized("Reset Progress") }
+    static var resetProgressFooter: String {
+        localized("Clears your best score, combo, rounds played, and achievements. Your settings are kept.")
+    }
+    static var resetProgressConfirmTitle: String { localized("Reset progress?") }
+    static var resetProgressConfirmMessage: String {
+        localized("This cannot be undone.")
+    }
+    /// 确认弹窗上那个破坏性按钮。和行标题分开：行是入口，这个是「就是现在，动手」。
+    static var resetProgressConfirmAction: String { localized("Reset") }
+    static var cancel: String { localized("Cancel") }
+    /// 重置完成后播报给 VoiceOver——弹窗关掉后屏幕上没有可见变化能说明它生效了。
+    static var resetProgressDoneAnnouncement: String { localized("Progress reset.") }
+
     // MARK: - Lookup
 
     private static func localized(_ key: String) -> String {
@@ -121,6 +137,10 @@ enum Strings {
         "Settings", "Close Settings", "Sound", "Haptics", "Reduce Motion",
         "Vibration on impact. Unavailable on some devices.",
         "Also follows the system setting in Accessibility.",
+        "Reset Progress",
+        "Clears your best score, combo, rounds played, and achievements. Your settings are kept.",
+        "Reset progress?", "This cannot be undone.", "Reset", "Cancel",
+        "Progress reset.",
     ]
     #endif
 }

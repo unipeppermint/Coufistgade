@@ -1,0 +1,146 @@
+{
+  "sourceLanguage" : "en",
+  "strings" : {
+    "reel.bonusCaption" : {
+      "comment" : "Caption above the bonus points awarded by the reels",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "REEL BONUS" } }
+      }
+    },
+    "reel.bonusValue" : {
+      "comment" : "Bonus points added by the reels, e.g. +150",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "+%lld" } }
+      }
+    },
+    "reel.shortfall" : {
+      "comment" : "How much more is needed on one reel, shown in the game HUD, e.g. +13",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "+%lld" } }
+      }
+    },
+    "reel.shortfallMet" : {
+      "comment" : "Shown under a reel that already reached the next tier",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "✓" } }
+      }
+    },
+    "reel.hudSlotLabel" : {
+      "comment" : "VoiceOver label for one in-round reel. 1: dimension, 2: value, 3: symbol, 4: how much more is needed",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "%1$@ %2$lld, %3$@, %4$lld to go" } }
+      }
+    },
+    "reel.hudSlotLabelMet" : {
+      "comment" : "VoiceOver label for an in-round reel that already reached the next tier. 1: dimension, 2: value, 3: symbol",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "%1$@ %2$lld, %3$@, reached" } }
+      }
+    },
+    "reel.floorCaption" : {
+      "comment" : "Shown when the reels differ but still pay. Placeholder is the lowest symbol's name, e.g. Bell",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "%@ BONUS" } }
+      }
+    },
+    "reel.dimension.combo" : {
+      "comment" : "Reel column header: the round's best combo",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "CHAIN" } }
+      }
+    },
+    "reel.dimension.hits" : {
+      "comment" : "Reel column header: scoring hits landed this round",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "HITS" } }
+      }
+    },
+    "reel.dimension.score" : {
+      "comment" : "Reel column header: the round's score",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "SCORE" } }
+      }
+    },
+    "reel.hint" : {
+      "comment" : "Teaches the floor rule when the round earned no bonus. Points at the outlined reel.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Your lowest reel sets the bonus" } }
+      }
+    },
+    "reel.lineCaption" : {
+      "comment" : "Shown when all three reels match. Placeholder is the symbol name, e.g. Star",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "%@ LINE" } }
+      }
+    },
+    "reel.lineAnnouncement" : {
+      "comment" : "VoiceOver announcement for a line. 1: symbol name, 2: bonus points",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "%1$@ line. Bonus %2$lld points." } }
+      }
+    },
+    "reel.bonusAnnouncement" : {
+      "comment" : "VoiceOver announcement for a partial match bonus",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Reel bonus %lld points." } }
+      }
+    },
+    "reel.slotLabel" : {
+      "comment" : "VoiceOver label for one reel. 1: dimension, 2: value, 3: symbol name",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "%1$@ %2$lld, %3$@" } }
+      }
+    },
+    "reel.panelLabel" : {
+      "comment" : "VoiceOver label for the reel panel as a whole",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Round reels" } }
+      }
+    },
+    "reel.symbol.bell" : {
+      "comment" : "Reel symbol name, second tier",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Bell" } }
+      }
+    },
+    "reel.symbol.cherry" : {
+      "comment" : "Reel symbol name, lowest tier",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Cherry" } }
+      }
+    },
+    "reel.symbol.seven" : {
+      "comment" : "Reel symbol name, highest tier",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Seven" } }
+      }
+    },
+    "reel.symbol.star" : {
+      "comment" : "Reel symbol name, third tier",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Star" } }
+      }
+    }
+  },
+  "version" : "1.0"
+}

@@ -17,6 +17,11 @@ final class GameHUDView: UIView {
     private let scoreHUD: ScoreHUDView
     private let comboHUD: ComboHUDView
     private let timerHUD: TimerHUDView
+    /// 对局中的三个轮子（GAMEPLAY §27）。
+    ///
+    /// 高度恒定，见 ReelHUDStripView 顶部——它和 combo 行受同一条约束约束：
+    /// 这一条的高度决定物理天花板的位置。
+    private let reelStrip = ReelHUDStripView()
     private let stack = UIStackView()
 
     /// Emphasis from the most recent combo event, applied to the next score pop.
@@ -67,7 +72,9 @@ final class GameHUDView: UIView {
         // Score and combo centred; the timer is placed separately below, on the
         // pause button's row. Stacked directly above the score it read as part
         // of it — a bare number sitting on top of "SCORE 40".
-        [scoreHUD, comboHUD].forEach { stack.addArrangedSubview($0) }
+        // 轮子排在 combo 下面：它是这一局的目标，而分数与连击是当下的状态。
+        // 目标放在状态之后读起来才顺——先看到「我现在多少」，再看到「还差多少」。
+        [scoreHUD, comboHUD, reelStrip].forEach { stack.addArrangedSubview($0) }
 
         stack.translatesAutoresizingMaskIntoConstraints = false
         timerHUD.translatesAutoresizingMaskIntoConstraints = false
@@ -109,11 +116,23 @@ final class GameHUDView: UIView {
         timerHUD.update(remainingSeconds: remainingSeconds)
     }
 
+    /// 轮子的进度（GAMEPLAY §27）。
+    ///
+    /// 每次得分都会调到这里，但绝大多数时候三个符号一个都没变——只有跨档时才给
+    /// 回弹与提示音，否则每次命中都响一下，那条 HUD 会变成噪音。
+    func apply(reels progress: ReelProgress, feedback: (ReelDimension) -> Void) {
+        let advanced = reelStrip.apply(progress)
+        guard !advanced.isEmpty else { return }
+        reelStrip.playAdvanceBounce(for: advanced)
+        advanced.forEach(feedback)
+    }
+
     func reset() {
         pendingEmphasis = .normal
         scoreHUD.reset()
         comboHUD.reset()
         timerHUD.reset()
+        reelStrip.reset()
     }
 
     // MARK: - Inspection
@@ -123,5 +142,6 @@ final class GameHUDView: UIView {
     var isComboVisible: Bool { comboHUD.isReadoutVisible }
     var displayedTimeText: String? { timerHUD.displayedText }
     var isTimerUrgent: Bool { timerHUD.isShowingUrgency }
+    var displayedReelSymbols: [ReelSymbol] { reelStrip.displayedSymbols }
 
 }

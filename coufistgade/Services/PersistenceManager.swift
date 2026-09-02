@@ -88,6 +88,28 @@ struct PersistenceManager {
         return RoundRecord(isNewBestScore: beatScore, isNewBestCombo: beatCombo)
     }
 
+    // MARK: - 重置进度
+
+    /// 清掉全部进度：最高分、最高连击、累计局数、已解锁成就。
+    ///
+    /// **为什么是「全部」而不是只清最高分。** 部分清除会造出自相矛盾的状态：只清
+    /// 最高分，首页显示 `BEST 0`，而成就墙上「单局 1000 分」还亮着；清了记录却留下
+    /// `totalGames`，「累计 50 局」也一样。进度这几项互为解释，要么都留，要么都清。
+    ///
+    /// **偏好不在此列。** 音效、触感、减弱动效不是成绩，清掉它们只会让玩家重设
+    /// 一遍，那读起来像 bug 而不像重置。三个键刻意不动。
+    ///
+    /// 用 removeObject 而不是写 0：`integer(forKey:)` 对不存在的键答 0，所以移除
+    /// 之后读到的仍是 0，且存储真的回到「从未玩过」，而不是留下几个显式的 0。
+    ///
+    /// 破坏性且不可撤销，所以调用方必须先做二次确认（见 SettingsViewController）。
+    func resetProgress() {
+        defaults.removeObject(forKey: Key.bestScore)
+        defaults.removeObject(forKey: Key.bestCombo)
+        defaults.removeObject(forKey: Key.totalGames)
+        defaults.removeObject(forKey: Key.unlockedAchievements)
+    }
+
     // MARK: - Settings
 
     /// Phase 14 binds these to switches. Wired to the services already, so the

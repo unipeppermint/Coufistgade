@@ -45,6 +45,38 @@ enum Theme {
         static let heroBallWidthRatio: CGFloat = 0.42
         static let heroBallMinimumDiameter: CGFloat = 120
         static let heroBallMaximumDiameter: CGFloat = 200
+
+        /// 结算转轴的窗口最小高度（UI_DESIGN §13a）。
+        ///
+        /// 取触控目标的尺寸，尽管轮窗不可点：三个格子并排时这个高度看起来正好，
+        /// 而复用已有常量省掉一个自由数字。大号 Dynamic Type 下由内容顶开。
+        static let reelWindowMinimumHeight: CGFloat = 56
+
+        /// 轮子上符号的字号上限。
+        ///
+        /// 必须设上限：符号是 emoji，字形跟随 Dynamic Type 无限放大会顶出固定
+        /// 宽度的轮窗，三列等宽的排布随之崩掉。
+        static let reelSymbolMaxPointSize: CGFloat = 34
+
+        /// 对局中 HUD 里的轮窗，比结算页那个小一号。
+        ///
+        /// 小是必须的，而不是审美选择：HUD 的高度决定物理天花板的位置
+        /// （见 GameScreenView.playableInsets），每多一点都从可玩区域里扣。
+        static let reelWindowCompactHeight: CGFloat = 34
+        static let reelSymbolCompactMaxPointSize: CGFloat = 20
+
+        /// 对局中轮窗的最小宽度。
+        ///
+        /// 略宽于高（34），因为老虎机的轮窗本来就是横向略长的方格。不设下限的话，
+        /// 窗口会缩到 emoji 的固有宽度，三个格子看起来是圆的，读不出「轮子」。
+        static let reelWindowCompactWidth: CGFloat = 46
+
+        /// 「还差多少」那行字的固定高度。
+        ///
+        /// 必须固定：这行字会在「+13」与「✓」之间来回变，若高度随内容变化，
+        /// HUD 的高度就会跟着变，物理天花板会在对局中上下移动，把球推来推去。
+        /// 这正是 combo 那一行用 alpha 0 而不是 isHidden 的同一个理由。
+        static let reelShortfallHeight: CGFloat = 14
     }
 
     enum Typography {

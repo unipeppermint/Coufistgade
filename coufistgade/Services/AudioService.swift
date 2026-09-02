@@ -30,6 +30,23 @@ protocol AudioPlaying: AnyObject {
     func playImpact(_ intensity: ImpactIntensity)
     func playComboMilestone()
     func playAchievementUnlock()
+    /// 单个轮子定住（GAMEPLAY §27）。
+    func playReelSettle(_ symbol: ReelSymbol)
+    /// 三轮同档成线。
+    func playReelLine()
+}
+
+/// 转轴音效的默认空实现。
+///
+/// 刻意给默认值而不是列为必需：这两个方法只有 AudioService 需要真的发声，而协议
+/// 有六个实现方（SilentAudio 与四个测试 spy）。列为必需会一次打断全部，逼着每个
+/// spy 加两个空方法——那是与转轴无关的改动。
+///
+/// 代价是新写的实现方会静默拿到空实现而不是编译错误。对这两个纯锦上添花的提示音
+/// 来说可以接受；碰撞音那三个是核心，仍然是必需的。
+extension AudioPlaying {
+    func playReelSettle(_ symbol: ReelSymbol) {}
+    func playReelLine() {}
 }
 
 final class AudioService: AudioPlaying {
@@ -49,6 +66,9 @@ final class AudioService: AudioPlaying {
     private var impactBuffers: [ImpactIntensity: AVAudioPCMBuffer] = [:]
     private var comboBuffer: AVAudioPCMBuffer?
     private var achievementBuffer: AVAudioPCMBuffer?
+    /// 每档一个：轮子定住的音随符号升调，所以不能共用一个 buffer。
+    private var reelSettleBuffers: [ReelSymbol: AVAudioPCMBuffer] = [:]
+    private var reelLineBuffer: AVAudioPCMBuffer?
     private var isRunning = false
 
     init(sampleRate: Double = 44_100) {
@@ -107,6 +127,22 @@ final class AudioService: AudioPlaying {
             amplitude: config.achievementAmplitude,
             duration: config.achievementDuration
         )
+
+        // 转轴音（GAMEPLAY §27）。四档各一个，在这里一次生成而不是定住时才合成：
+        // 揭晓是连续的四声，临时合成会在第一声上多出可听的延迟。
+        let reels = GameConfiguration.Reels.Audio.self
+        for symbol in ReelSymbol.allCases {
+            reelSettleBuffers[symbol] = makeBuffer(
+                frequency: reels.settleFrequency(for: symbol),
+                amplitude: reels.settleAmplitude,
+                duration: reels.settleDuration
+            )
+        }
+        reelLineBuffer = makeBuffer(
+            frequency: reels.lineFrequency,
+            amplitude: reels.lineAmplitude,
+            duration: reels.lineDuration
+        )
     }
 
     /// One percussive cue: a sine with a fast exponential decay.
@@ -156,6 +192,16 @@ final class AudioService: AudioPlaying {
         play(buffer)
     }
 
+    func playReelSettle(_ symbol: ReelSymbol) {
+        guard let buffer = reelSettleBuffers[symbol] else { return }
+        play(buffer)
+    }
+
+    func playReelLine() {
+        guard let buffer = reelLineBuffer else { return }
+        play(buffer)
+    }
+
     private func play(_ buffer: AVAudioPCMBuffer) {
         guard isEnabled, !players.isEmpty else { return }
         // Started lazily: an engine running while the game is silent wastes
@@ -196,6 +242,12 @@ final class AudioService: AudioPlaying {
     func debugComboBuffer() -> AVAudioPCMBuffer? { comboBuffer }
 
     func debugAchievementBuffer() -> AVAudioPCMBuffer? { achievementBuffer }
+
+    func debugReelSettleBuffer(for symbol: ReelSymbol) -> AVAudioPCMBuffer? {
+        reelSettleBuffers[symbol]
+    }
+
+    func debugReelLineBuffer() -> AVAudioPCMBuffer? { reelLineBuffer }
 
     var debugIsEngineRunning: Bool { engine.isRunning }
     #endif

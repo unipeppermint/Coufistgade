@@ -150,6 +150,45 @@ Actions:
 
 Play Again is the primary action.
 
+## 13a. Result Reels
+
+Sits directly under the score, above the secondary statistics — it changes that
+number, so nothing should come between them.
+
+Three equal columns, left to right:
+- Caption: HITS / CHAIN / SCORE
+- Window: one symbol, bordered, on the app background
+
+Below the columns:
+- Line caption, only when all three match
+- Bonus value, only when a bonus was earned
+- The matching rule, only when nothing matched
+
+Never show "+0". A bonus row lit every round would stop reading as an event, and
+the round that did not match is the right moment to explain the rule instead.
+
+Reveal order:
+1. Reels settle left to right, staggered
+2. Bonus value springs in
+3. The large score climbs from the round score to the total
+
+The climb is the point. It is where the bonus stops being a separate line of text
+and becomes the player's score.
+
+Reduce Motion: no spin, no climb, final state immediately — but the sound and
+haptics still play. Motion is the preference, not feedback.
+
+Accessibility:
+- Each column is one element, read as "Hits 12, Star" — the value is included so
+  the thresholds can be inferred rather than guessed
+- The final label is set before the spin starts; a VoiceOver user gets the result,
+  not the intermediate frames
+- The bonus is announced once, after the reveal
+
+Only the top two tiers (Star, Seven) get the celebration cue. A Cherry line
+happens on the first round, and amplifying it would spend the meaning of "line"
+immediately.
+
 ## 14. New Record
 
 Show:

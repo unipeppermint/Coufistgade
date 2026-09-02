@@ -299,3 +299,99 @@ Highest priority:
 - Haptic feedback
 
 If a feature harms these qualities, postpone the feature.
+
+## 27. Result Reels
+
+### Purpose
+
+A slot-style readout of the round the player just finished, shown on the result
+screen.
+
+### The one invariant
+
+**No randomness.** Three reels each read one dimension of the finished round and
+land on a symbol by threshold. The same round always spins the same result.
+
+This is not a compromise made to satisfy App Store review — it is the better
+design. Matching all three requires pushing all three dimensions at once, so a
+lopsided round cannot line up. The player can learn it rather than wait for it.
+
+It does also settle the review question. The age-rating questionnaire's
+Chance-Based Activities section defines Simulated Gambling as "betting or
+wagering without using real money or in-game currency that can be exchanged for
+real money". There is no bet here, no currency, and no chance — so every item in
+that section stays answered No, and the app keeps its rating. A single
+"infrequent simulated gambling" answer would mean 13+ globally and R 18+ in
+Australia.
+
+### Reels
+
+| Reel | Reads | Meaning |
+|---|---|---|
+| Left | Round hits | Volume |
+| Middle | Round best combo | Chaining |
+| Right | Round score, **before bonus** | Result |
+
+### Symbols
+
+Ascending: Cherry, Bell, Star, Seven.
+
+Thresholds reuse numbers the player has already been taught, rather than
+introducing a second standard:
+
+| Reel | Cherry | Bell | Star | Seven |
+|---|---|---|---|---|
+| Hits | 0 | 5 | 12 | 25 |
+| Chain | 0 | 2 | 4 | 7 |
+| Score | 0 | 100 | 500 | 1000 |
+
+Hits 25 is the `busyRound` achievement. Chain 2 / 4 / 7 are the combo ladder's
+own steps (§15) and the counts that already earn a milestone cue (§16). Score
+100 / 500 / 1000 are the `century` / `fiveHundred` / `thousand` achievements.
+
+### Payouts
+
+Three matching (a line):
+
+| Line | Bonus |
+|---|---|
+| Cherry | 20 |
+| Bell | 60 |
+| Star | 150 |
+| Seven | 400 |
+
+Two matching pays only at the top tiers — 30 for Star, 80 for Seven, nothing
+below. "Exactly two alike" is a common shape with four symbols across three
+reels; paying every instance would leave the bonus row lit almost every round,
+and a line would stop being an event.
+
+The Cherry line pays despite marking a poor round. It is deliberate: it happens
+on the first round, which teaches the matching rule without a tutorial — the same
+tactic as the achievement list opening with one that is near-certain. 20 points
+is negligible in any round.
+
+### Ordering
+
+Four steps at the end of a round, none interchangeable:
+
+1. Evaluate the reels against the **pre-bonus** score. Reading the bonused score
+   would make the reels read their own output — a Star line pushes 900 to 1050,
+   which re-evaluates as Seven.
+2. Total = round score + bonus.
+3. Record the total. The bonus is earned score, so it counts toward the best
+   score.
+4. Judge achievements on the total, after recording (§20a's rule). Judging on
+   the pre-bonus score would show 520 on screen while "score 500 in a round"
+   stayed locked.
+
+### Presentation
+
+Reels settle left to right, staggered, then the bonus appears and the large total
+climbs from the round score to the total. That climb is where the bonus becomes
+the player's own — without it, the bonus is just another line of text.
+
+Reduce Motion skips the spin and the climb but **keeps** the sound and haptics: it
+is a preference about motion, not about feedback.
+
+Nothing matched shows the rule instead of "+0" — the round that did not match is
+the right moment to explain what matching is.

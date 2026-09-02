@@ -304,6 +304,32 @@ Requirements:
 - Polished audio
 - Polished haptics
 
+## Phase 22 — Result Reels
+Status: Completed
+
+A slot-style readout of the finished round on the result screen. Built on the dev
+branch.
+
+Implement:
+- Three reels reading round hits, best combo, and pre-bonus score
+- Four symbol tiers by threshold, reusing the achievement targets and the combo
+  ladder's own steps
+- Line and near-miss bonuses, added to the round total
+- Staggered reveal, then the score climbs from the round score to the total
+- Reduce Motion path that keeps sound and haptics
+
+The load-bearing constraint: **no random source, ever.** The reels read the round
+that was played, so the same round always spins the same result. That is both the
+design (matching needs all three dimensions pushed at once, so it can be learned)
+and what keeps every Chance-Based Activities answer at No in the age-rating
+questionnaire. See `PRD.md` §10b for the review consequences of changing this,
+`GAMEPLAY.md` §27 for the rules and thresholds, and `UI_DESIGN.md` §13a for the
+screen.
+
+Not implemented, deliberately: no currency, no wager, no purchasable spin, no
+separate slot mode. Any of those changes what the app is rated and who may submit
+it.
+
 ## Definition of Done
 
 A phase can be marked Completed only when:

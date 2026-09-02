@@ -21,6 +21,16 @@ protocol HapticPlaying: AnyObject {
     func playImpact(_ intensity: ImpactIntensity)
     func playComboMilestone()
     func playAchievementUnlock()
+    /// 单个轮子定住（GAMEPLAY §27）。
+    func playReelSettle()
+    /// 三轮同档成线。
+    func playReelLine()
+}
+
+/// 转轴触感的默认空实现。理由同 `AudioPlaying` 的同名扩展。
+extension HapticPlaying {
+    func playReelSettle() {}
+    func playReelLine() {}
 }
 
 final class HapticService: HapticPlaying {
@@ -92,6 +102,26 @@ final class HapticService: HapticPlaying {
     /// 同样用 .success，但走的是同一个限流器：解锁发生在结算页，此时对局已停，
     /// 不会和碰撞震动挤在一起。限流仍然保留，因为一局可能同时解锁多条成就。
     func playAchievementUnlock() {
+        guard shouldPlay() else { return }
+        notificationGenerator.notificationOccurred(.success)
+        notificationGenerator.prepare()
+    }
+
+    /// 单个轮子定住（GAMEPLAY §27）。
+    ///
+    /// 用 .light 而不是 notification：定住是四声里的一下，轻拍才排得进节奏，
+    /// 而 .success 那种双震在 0.22s 间隔下会糊成一片。
+    ///
+    /// 走同一个限流器，间隔 0.22s 高于 0.12s 的下限，所以正常揭晓不会被吃掉。
+    func playReelSettle() {
+        guard shouldPlay() else { return }
+        let generator = generator(for: .light)
+        generator.impactOccurred()
+        generator.prepare()
+    }
+
+    /// 三轮同档成线。
+    func playReelLine() {
         guard shouldPlay() else { return }
         notificationGenerator.notificationOccurred(.success)
         notificationGenerator.prepare()

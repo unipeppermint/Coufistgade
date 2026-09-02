@@ -449,6 +449,133 @@ enum GameConfiguration {
         static let urgentRemainingTime: TimeInterval = 10
     }
 
+    /// 结算转轴（GAMEPLAY §27）。
+    ///
+    /// **这里一个随机数都没有，也不允许有。** 三个轮子各读一个维度，按下面的
+    /// 阈值落档；同一局成绩永远转出同一个结果。转轴是既得成绩的呈现层，不是抽奖。
+    /// 详见 `ReelOutcome` 顶部那段说明。
+    enum Reels {
+
+        /// 各维度的档位阈值，**高档在前**——第一条够到的即为结果。
+        ///
+        /// 和 `Combo.multiplierLadder` 同一个写法：整条曲线在一处可审阅，调值不动
+        /// 逻辑。`ReelEvaluatorTests` 会核对每张表都是严格递减的，且最低一档为 0
+        /// （否则会有成绩落不到任何档上）。
+        ///
+        /// 三张表的数字**全部来自已有设计**，没有新造的量级：
+        ///
+        /// - hits：25 是成就 `busyRound` 的目标值。12 与 5 取其大致半程与四分之一。
+        /// - combo：2 / 4 / 7 正是 `Combo.multiplierLadder` 的三级台阶，也正是
+        ///   `Combo.milestoneCounts` 里会给独立提示音的那几个数。玩家已经被教过
+        ///   这几个数字意味着什么。
+        /// - score：100 / 500 / 1000 是成就 `century` / `fiveHundred` / `thousand`
+        ///   的目标值。
+        ///
+        /// 复用而不是另设一套，是为了让轮子上的符号和玩家已经认识的里程碑对齐：
+        /// 打到「连击 7」这件事同时点亮成就与轮子，而不是两个各说各话的标准。
+        static let thresholds: [ReelDimension: [(minimumValue: Int, symbol: ReelSymbol)]] = [
+            .hits: [
+                (25, .seven),
+                (12, .star),
+                (5, .bell),
+                (0, .cherry),
+            ],
+            .combo: [
+                (7, .seven),
+                (4, .star),
+                (2, .bell),
+                (0, .cherry),
+            ],
+            .score: [
+                (1_000, .seven),
+                (500, .star),
+                (100, .bell),
+                (0, .cherry),
+            ],
+        ]
+
+        /// 奖励分，按**最低档**查（见 `ReelOutcome` 顶部第二条）。
+        ///
+        /// 樱桃档给 0，这一条是有意的。三个轮子在回合开始时全是樱桃（0/0/0），
+        /// 若樱桃也给分，奖励行会在每一局的第一秒就亮起来并一直亮着——那时它就
+        /// 不再是个可争的东西了。
+        ///
+        /// 教学不靠这笔钱：轮子现在整局都在 HUD 上，每个轮子下面写着还差多少，
+        /// 规则是看得见的（GAMEPLAY §27）。这比给 20 分讲得清楚。
+        ///
+        /// 顶端 400 分：要拿到它得同时满足命中 25、连击 7、得分 1000——三个维度
+        /// 全部推到顶。放在一局 1000+ 分上约占 40%，不小，但配得上那个门槛。
+        static func bonus(for symbol: ReelSymbol) -> Int {
+            switch symbol {
+            case .cherry: 0
+            case .bell: 60
+            case .star: 150
+            case .seven: 400
+            }
+        }
+
+        /// 三轮同档时值得额外庆祝的档位。
+        ///
+        /// 同档（`ReelOutcome.isAligned`）不额外加钱，只给一次反馈——它是「三个
+        /// 维度齐平」的那一刻。加钱会让「保住齐平」重新变成停手的理由。
+        ///
+        /// 星与七给，樱桃与铃不给：樱桃齐平在回合开始时就成立，铃档齐平也很常见，
+        /// 放大它们会把「齐平」的分量花掉。
+        static let celebratedAlignments: Set<ReelSymbol> = [.star, .seven]
+
+        // MARK: - 动画
+
+        /// 单个轮子滚动多久后定住。
+        static let spinDuration: TimeInterval = 0.9
+
+        /// 相邻轮子的开始/停止间隔。依次定住而不是齐停——逐个揭晓才有悬念，
+        /// 也让玩家看清每个轮子各自读的是什么。
+        static let spinStagger: TimeInterval = 0.22
+
+        /// 滚动过程中符号切换的间隔。
+        static let symbolCycleInterval: TimeInterval = 0.06
+
+        /// 三轮全部定住后，到奖励分出现之间的停顿。
+        static let bonusRevealDelay: TimeInterval = 0.18
+
+        /// 总分从对局分爬到含奖励总分所用的时间。
+        ///
+        /// 这是整套机制的兑现时刻：轮子停住、奖励分弹出、上面那个大号总分跟着往上
+        /// 走。没有这一下的话，奖励分只是页面上多出来的一行字，玩家不会觉得它是
+        /// 自己的分。
+        static let scoreCountUpDuration: TimeInterval = 0.5
+
+        /// 爬分的步数。步子太少会看出跳格，太多则每步的差值小于 1 分而白跑。
+        static let scoreCountUpSteps = 18
+
+        /// 定住时那一下回弹的幅度与时长。
+        static let settleOvershoot: CGFloat = 1.18
+        static let settleDuration: TimeInterval = 0.24
+
+        /// 转轴音效。单独一层，避免和上面的动画时长同名相撞——
+        /// 和 `Feedback.Audio` 的分层方式一致。
+        enum Audio {
+            /// 频率随档位升高。和碰撞音刻意相反（那里越重越低沉），因为这里
+            /// 升调表达的是「揭晓」而不是「撞击」。
+            static func settleFrequency(for symbol: ReelSymbol) -> Double {
+                switch symbol {
+                case .cherry: 520
+                case .bell: 620
+                case .star: 740
+                case .seven: 880
+                }
+            }
+
+            static let settleAmplitude: Double = 0.20
+            static let settleDuration: Double = 0.08
+
+            /// 成线提示音：比任何单轮定住音都高且长。
+            static let lineFrequency: Double = 1_180
+            static let lineAmplitude: Double = 0.28
+            static let lineDuration: Double = 0.22
+        }
+    }
+
     enum World {
         /// Extra inset inside the safe area so a ball never sits half-hidden
         /// under the Dynamic Island or the home indicator (GAMEPLAY §9).

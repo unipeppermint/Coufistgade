@@ -37,13 +37,18 @@ final class GameViewController: UIViewController {
     private let store: PersistenceManager
     private let announcer: Announcer
     private let achievements: AchievementTracker
+    /// 结算转轴的判定器（GAMEPLAY §27）。
+    ///
+    /// 无状态、无随机数，所以按值持有即可，不需要每局重建。
+    private let reels: ReelEvaluator
 
     init(
         audio: AudioService = AudioService(),
         haptics: HapticService = HapticService(),
         store: PersistenceManager = PersistenceManager(),
         announcer: Announcer = Announcer(),
-        achievements: AchievementTracker? = nil
+        achievements: AchievementTracker? = nil,
+        reels: ReelEvaluator = ReelEvaluator()
     ) {
         self.audio = audio
         self.haptics = haptics
@@ -51,6 +56,7 @@ final class GameViewController: UIViewController {
         self.announcer = announcer
         // 默认与本控制器共用同一个 store，否则成就判定读到的是另一份数据。
         self.achievements = achievements ?? AchievementTracker(store: store)
+        self.reels = reels
         super.init(nibName: nil, bundle: nil)
     }
 
@@ -192,6 +198,12 @@ final class GameViewController: UIViewController {
     private func startRound() {
         screenView.hud.reset()
         scene?.startNewRound()
+        // 开局就把「还差多少」摆上，而不是等第一次命中。
+        //
+        // 这是玩家最需要它的时刻：三个轮子都在 🍒，每个下面写着到 🔔 还差多少，
+        // 于是这一局要干什么在第一秒就是清楚的。等第一次得分才显示，反而是在
+        // 玩家已经开始乱打之后才给目标。
+        if let scene { updateReels(from: scene) }
         #if DEBUG
         if DebugOptions.maxBalls { scene?.debugFillToMaximumBalls() }
         scheduleAutoPauseIfRequested()
@@ -215,6 +227,37 @@ extension GameViewController: GameSceneDelegate {
     /// Arrives on a scoring collision, never per frame (ARCHITECTURE §23).
     func gameScene(_ scene: GameScene, didScore event: ScoreEvent) {
         screenView.hud.apply(score: event)
+        // 轮子跟着走（GAMEPLAY §27）。得分事件是唯一需要的触发点：三个维度里
+        // 命中与得分都随它变化，而连击的 didUpdateCombo 总在它之前到达，所以这里
+        // 读到的已经是最新的连击。
+        updateReels(from: scene)
+    }
+
+    /// 把当前局面推给 HUD 上的轮子。
+    ///
+    /// 每次得分调一次。判定是纯查表，没有分配，也没有随机数——真正做事的是
+    /// ReelHUDStripView，它只在符号跨档时才动。
+    private func updateReels(from scene: GameScene) {
+        let progress = reels.progress(
+            RoundSummary(
+                score: scene.score,
+                highestCombo: scene.highestCombo,
+                hits: scene.roundHits
+            )
+        )
+        screenView.hud.apply(reels: progress) { [weak self] dimension in
+            // 跨档给一声，和结算页轮子定住用同一个音——对玩家来说这是同一件事：
+            // 一个轮子换了符号。
+            //
+            // 音高取**跨档的那个轮子**的新符号，不是随便一个：音随档位升高，所以
+            // 这一声本身就说明了「涨到哪一档了」。
+            guard let self,
+                  let symbol = progress.outcome.slots
+                      .first(where: { $0.dimension == dimension })?.symbol
+            else { return }
+            self.audio.playReelSettle(symbol)
+            self.haptics.playReelSettle()
+        }
     }
 
     /// Arrives when the combo advances or lapses — the scene reports this
@@ -256,27 +299,48 @@ extension GameViewController: GameSceneDelegate {
         // must hear, even if a combo was announced a moment ago.
         announcer.announceImmediately(Strings.roundEndAnnouncement(score: scene.score))
 
+        // 这一段的顺序是有讲究的，四步都不能换位置（GAMEPLAY §27）：
+        //
+        //   1. 转轴读**加成前**的成绩。读加成后的分数就成环了——轮子会在读自己
+        //      的输出。
+        //   2. 总分 = 对局分 + 转轴奖励。
+        //   3. 用总分入库。奖励分不是装饰，它计入最高分。
+        //   4. 判定成就，同样用总分，且必须在 record 之后（原因见下）。
+        let baseScore = scene.score
+        let summary = RoundSummary(
+            score: baseScore,
+            highestCombo: scene.highestCombo,
+            hits: scene.roundHits
+        )
+        let outcome = reels.evaluate(summary)
+        let finalScore = baseScore + outcome.bonus
+
         // Filed before the result is built, so the badge comes from the write
         // itself rather than a second comparison that could disagree with it.
-        let record = store.record(score: scene.score, combo: scene.highestCombo)
+        let record = store.record(score: finalScore, combo: scene.highestCombo)
 
         // 必须在 store.record 之后：生涯类成就（累计局数、历史最高）要把刚结束
         // 这一局算进去，否则"累计 10 局"永远差一局才解锁。
+        //
+        // 用含奖励的总分判定：玩家看到的分数就是这个，成就却按另一个数算的话，
+        // 「单局 500 分」会在结算页显示 520 分时仍然不解锁，那是个说不通的界面。
         let unlocked = achievements.evaluate(
             RoundSummary(
-                score: scene.score,
+                score: finalScore,
                 highestCombo: scene.highestCombo,
                 hits: scene.roundHits
             )
         )
         presentResult(
             RoundResult(
-                score: scene.score,
+                score: finalScore,
                 roundCombo: scene.highestCombo,
                 bestScore: store.bestScore,
                 bestCombo: store.bestCombo,
                 isNewRecord: record.isNewBestScore,
-                unlockedAchievements: unlocked
+                unlockedAchievements: unlocked,
+                baseScore: baseScore,
+                reelOutcome: outcome
             )
         )
     }
@@ -285,7 +349,10 @@ extension GameViewController: GameSceneDelegate {
         let resultViewController = ResultViewController(
             result: result,
             audio: audio,
-            haptics: haptics
+            haptics: haptics,
+            // 同一个 announcer，而不是新建一个：限流器是它的状态，两个实例各自
+            // 计时的话，回合结束那句和转轴那句会挤在一起。
+            announcer: announcer
         )
         resultViewController.onPlayAgain = { [weak self] in
             // Pops back to this screen, which is still beneath, rather than

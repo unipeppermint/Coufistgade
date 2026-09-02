@@ -183,9 +183,56 @@ Metrics in use: round score, round combo, round hits, cumulative rounds. Best
 score and best combo were defined as metrics and then removed — no achievement
 used them, and an unused enum case reads as an oversight.
 
+## 10b. Result Reels
+
+Shipped. A slot-style readout of the finished round, on the result screen.
+
+Purpose: give the end of a round a payoff moment, and give the player a target
+that is not simply "a bigger number". The best score rewards one dimension;
+the reels reward three at once.
+
+Design constraints, in order of how much they matter:
+
+- **No randomness, ever.** The reels read the round that was just played — hits,
+  best combo, score — and land by threshold. The same round always produces the
+  same result. This is the whole design: matching all three requires pushing all
+  three dimensions in one round, so a lopsided round cannot line up. The player
+  learns it instead of waiting for it.
+- **No bet, no currency, no purchase.** Nothing is staked to spin, nothing
+  accumulates, nothing is bought. See below for why this is load-bearing.
+- **The bonus is real score.** It counts toward the total, the best score, and
+  achievements. A bonus that did not count would be decoration, and the player
+  would learn to ignore it.
+- **Thresholds reuse numbers already taught.** They are the achievement targets
+  and the combo ladder's own steps, not a second scale to learn.
+- **Nothing matched shows the rule, not "+0".** The round that missed is the right
+  moment to explain what matching is.
+
+### Why the no-chance property is load-bearing
+
+The App Store age-rating questionnaire's Chance-Based Activities section defines
+Simulated Gambling as "betting or wagering without using real money or in-game
+currency that can be exchanged for real money". With no bet, no currency, and no
+chance, every item in that section stays answered No.
+
+The cost of answering otherwise is not small: one "infrequent simulated gambling"
+answer means 13+ globally and R 18+ in Australia. Guideline 5.1.1(ix) separately
+requires apps in highly regulated fields, gambling among them, to be submitted by
+a legal entity rather than an individual developer — see `APP_STORE.md`, where the
+signing team is still unset.
+
+So the constraint is: **reel behaviour may be tuned freely, but a random source
+must never be introduced.** Doing so would change the app's rating, its
+submission requirements, and possibly its eligibility. `ReelEvaluatorTests`
+asserts determinism directly for this reason.
+
 ## 11. Monetization
 
 MVP may be completely free.
+
+Reels are **not** a monetization surface. No spin is bought, no bonus is sold, and
+no currency exists to sell. Introducing any of those would move the app into
+simulated gambling — see §10b.
 
 Future:
 - Remove Ads
