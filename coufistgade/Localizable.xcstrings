@@ -85,6 +85,30 @@
         }
       }
     },
+    "Cancel": {
+      "comment": "Cancel button in the reset-progress confirmation",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cancel"
+          }
+        }
+      }
+    },
+    "Clears your best score, combo, rounds played, and achievements. Your settings are kept.": {
+      "comment": "Footer under the Reset Progress row",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Clears your best score, combo, rounds played, and achievements. Your settings are kept."
+          }
+        }
+      }
+    },
     "Close Settings": {
       "comment": "VoiceOver label for the settings close button",
       "extractionState": "manual",
@@ -265,6 +289,54 @@
         }
       }
     },
+    "Progress reset.": {
+      "comment": "VoiceOver announcement after progress is cleared",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Progress reset."
+          }
+        }
+      }
+    },
+    "Reset": {
+      "comment": "Destructive button in the reset-progress confirmation",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reset"
+          }
+        }
+      }
+    },
+    "Reset Progress": {
+      "comment": "Settings row that clears all progress",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reset Progress"
+          }
+        }
+      }
+    },
+    "Reset your progress?": {
+      "comment": "Title of the reset-progress confirmation alert. Deliberately not 'Reset progress?' — that key generates the same Swift symbol as the 'Reset Progress' row title, which the String Catalog rejects.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reset your progress?"
+          }
+        }
+      }
+    },
     "Resume": {
       "comment": "Primary action on the pause panel",
       "extractionState": "manual",
@@ -333,6 +405,18 @@
           "stringUnit": {
             "state": "translated",
             "value": "Start Game"
+          }
+        }
+      }
+    },
+    "This cannot be undone.": {
+      "comment": "Message in the reset-progress confirmation alert",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This cannot be undone."
           }
         }
       }

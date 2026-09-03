@@ -172,9 +172,18 @@ final class ReelPanelView: UIView {
     private let columnStack = UIStackView()
     private let rootStack = UIStackView()
 
-    /// 滚动用的计时器。存下来是为了在 deinit 与重复调用时停掉——
-    /// 玩家在揭晓途中点「再来一局」会把这一页弹掉，计时器不能继续跑。
-    private var spinTimer: Timer?
+    /// 每次揭晓自增。排队中的锁定回调靠比对它决定自己是否已作废。
+    ///
+    /// 用一个自增计数而不是持有计时器：锁定是三次一次性的延时调用，没有需要反复
+    /// 触发的循环。玩家在揭晓途中点「再来一局」时，token 一变，那几次排队中的调用
+    /// 会各自静默退出，不必逐个 invalidate，也不会漏掉一个。
+    private var revealToken = 0
+
+    /// 是否有一次揭晓正在进行中。
+    ///
+    /// 单独一个标志，而不是从 token 推断：token 只说「第几次」，说不了「有没有在
+    /// 跑」。测试要断言的是后者。
+    private var isRevealing = false
 
     private var outcome: ReelOutcome?
 
@@ -191,9 +200,8 @@ final class ReelPanelView: UIView {
         fatalError("ReelPanelView is code-only; this app uses no storyboards or nibs.")
     }
 
-    deinit {
-        spinTimer?.invalidate()
-    }
+    // deinit 不再需要：锁定用的是 asyncAfter + [weak self]，视图消失后那几次调用
+    // 拿到 nil 就自己退出，没有计时器持有 self、也没有东西需要显式停掉。
 
     // MARK: - Setup
 
@@ -274,8 +282,9 @@ final class ReelPanelView: UIView {
     /// 测试与 Reduce Motion 都走这里。`reveal` 内部也以它收尾，所以「动画播完的
     /// 样子」和「不播动画的样子」由同一段代码产生，不会分叉。
     func configure(_ outcome: ReelOutcome) {
-        spinTimer?.invalidate()
-        spinTimer = nil
+        // 作废正在进行的揭晓：token 一变，排队中的锁定回调会各自退出。
+        revealToken += 1
+        isRevealing = false
         self.outcome = outcome
 
         for (column, slot) in zip(columns, outcome.slots) {
@@ -344,7 +353,15 @@ final class ReelPanelView: UIView {
             return
         }
 
-        // 起始状态：三列都在滚，奖励行还不出现。
+        // 起始状态：符号**立刻就是终值**，奖励行还不出现。
+        //
+        // 不再滚动（原先这里让三列乱转 0.9 秒再落回终值）。轮子整局都在 HUD 上，
+        // 玩家在回合结束前就知道三个符号是什么——此时再转一遍不只是穿帮，更糟的是
+        // 它读起来像「结果是现在才定的」，而这套机制的全部前提恰恰是结果由这一局
+        // 的表现决定、早已确定（见 ReelOutcome 顶部）。
+        //
+        // 保留的是节奏：三列依次「锁定」，各给一次回弹与一声提示。悬念没了，
+        // 但那本来也不该由假装的随机过程提供。
         bonusCaptionLabel.isHidden = true
         bonusValueLabel.isHidden = true
         hintLabel.isHidden = true
@@ -355,50 +372,45 @@ final class ReelPanelView: UIView {
         }
 
         let config = GameConfiguration.Reels.self
-        var cycle = 0
 
-        // 一个计时器驱动全部三列，而不是每列一个：三列的滚动本该同频，
-        // 各自计时会漂移。
-        spinTimer = Timer.scheduledTimer(
-            withTimeInterval: config.symbolCycleInterval,
-            repeats: true
-        ) { [weak self] timer in
-            guard let self else {
-                timer.invalidate()
-                return
+        // 用一个自增的 token 而不是持有计时器：锁定是三次一次性的延时调用，没有
+        // 需要反复触发的循环。玩家在揭晓途中点「再来一局」时，token 变化会让排队
+        // 中的那几次调用自己作废，不必逐个 invalidate。
+        revealToken += 1
+        let token = revealToken
+        isRevealing = true
+
+        for (index, column) in columns.enumerated() {
+            let slot = outcome.slots[index]
+            let delay = Double(index) * config.spinStagger
+
+            DispatchQueue.main.asyncAfter(deadline: .now() + delay) { [weak self] in
+                guard let self, self.revealToken == token else { return }
+                // 符号已经是终值了（上面设过），这里只做强调——回弹加一声。
+                column.playSettleBounce()
+                audio.playReelSettle(slot.symbol)
+                haptics.playReelSettle()
+
+                // 最后一列锁完才揭奖励，由同一条链保证顺序。
+                guard index == self.columns.count - 1 else { return }
+                self.revealBonus(
+                    outcome,
+                    token: token,
+                    audio: audio,
+                    haptics: haptics,
+                    completion: completion
+                )
             }
-            cycle += 1
-            let elapsed = Double(cycle) * config.symbolCycleInterval
-
-            var allSettled = true
-            for (index, column) in self.columns.enumerated() {
-                let settleTime = config.spinDuration + Double(index) * config.spinStagger
-                if elapsed >= settleTime {
-                    // 已经定住的列不再改写。判断依据是符号是否已经是终值——
-                    // 用它代替额外的状态位，少一处能不同步的东西。
-                    let target = outcome.slots[index].symbol
-                    if column.symbol != target {
-                        column.symbol = target
-                        column.playSettleBounce()
-                        audio.playReelSettle(target)
-                        haptics.playReelSettle()
-                    }
-                } else {
-                    allSettled = false
-                    column.symbol = Self.spinningSymbol(cycle: cycle, column: index)
-                }
-            }
-
-            guard allSettled else { return }
-            timer.invalidate()
-            self.spinTimer = nil
-            self.revealBonus(outcome, audio: audio, haptics: haptics, completion: completion)
         }
     }
 
-    /// 三轮定住之后，揭出奖励分。
+    /// 三轮锁完之后，揭出奖励分。
+    ///
+    /// 也要收 token：这一段在延时之后才跑，若玩家正好在这段延时里点了「再来一局」，
+    /// 没有 token 检查就会给一个已经作废的结果补上奖励行。
     private func revealBonus(
         _ outcome: ReelOutcome,
+        token: Int,
         audio: AudioPlaying,
         haptics: HapticPlaying,
         completion: (() -> Void)?
@@ -406,8 +418,9 @@ final class ReelPanelView: UIView {
         DispatchQueue.main.asyncAfter(
             deadline: .now() + GameConfiguration.Reels.bonusRevealDelay
         ) { [weak self] in
-            guard let self else { return }
-            // 终态由 configure 统一给出，见它的注释。
+            guard let self, self.revealToken == token else { return }
+            // 终态由 configure 统一给出，见它的注释。它同时会把 isRevealing 置回
+            // false —— 揭晓到这里就结束了。
             self.configure(outcome)
 
             if !outcome.isBlank {
@@ -454,17 +467,11 @@ final class ReelPanelView: UIView {
         playAlignmentFeedbackIfNeeded(outcome, audio: audio, haptics: haptics)
     }
 
-    /// 滚动过程中显示的符号。
-    ///
-    /// 各列错开一位，否则三个轮子会同步跳动，看起来像一个轮子被复制了三份。
-    /// 纯粹由帧序推出，不取随机数——滚动是动画，不是抽奖（见 ReelOutcome 顶部）。
-    private static func spinningSymbol(cycle: Int, column: Int) -> ReelSymbol {
-        let all = ReelSymbol.allCases
-        return all[(cycle + column) % all.count]
-    }
+    // spinningSymbol 已删除。它为滚动过程生成中间符号，而现在没有滚动过程——
+    // 符号一开始就是终值，三列只是依次锁定（见 reveal 里的说明）。
 
     #if DEBUG
-    /// 揭晓是否还在进行。测试用它确认计时器已被停掉。
-    var debugIsSpinning: Bool { spinTimer != nil }
+    /// 揭晓是否还在进行。测试用它确认揭晓已被作废或已同步完成。
+    var debugIsRevealing: Bool { isRevealing }
     #endif
 }

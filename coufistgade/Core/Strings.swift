@@ -101,7 +101,9 @@ enum Strings {
     static var resetProgressFooter: String {
         localized("Clears your best score, combo, rounds played, and achievements. Your settings are kept.")
     }
-    static var resetProgressConfirmTitle: String { localized("Reset progress?") }
+    /// 刻意不叫 "Reset progress?" —— 那个 key 会和行标题 "Reset Progress" 生成
+    /// 同一个 Swift 符号（大小写与标点会被规范化掉），String Catalog 会直接报错。
+    static var resetProgressConfirmTitle: String { localized("Reset your progress?") }
     static var resetProgressConfirmMessage: String {
         localized("This cannot be undone.")
     }
@@ -139,7 +141,7 @@ enum Strings {
         "Also follows the system setting in Accessibility.",
         "Reset Progress",
         "Clears your best score, combo, rounds played, and achievements. Your settings are kept.",
-        "Reset progress?", "This cannot be undone.", "Reset", "Cancel",
+        "Reset your progress?", "This cannot be undone.", "Reset", "Cancel",
         "Progress reset.",
     ]
     #endif

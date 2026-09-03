@@ -190,7 +190,7 @@ final class ReelPanelViewTests: XCTestCase {
 
         // 同步完成：没有计时器要等。
         XCTAssertTrue(completed, "降级路径应当同步完成")
-        XCTAssertFalse(sut.debugIsSpinning, "降级路径不该起计时器")
+        XCTAssertFalse(sut.debugIsRevealing, "降级路径应当同步完成，不留下进行中的揭晓")
 
         let value = try XCTUnwrap(label(ReelPanelView.AccessibilityID.bonusValue, in: sut))
         XCTAssertFalse(value.isHidden, "降级也要显示结果")
@@ -256,7 +256,7 @@ final class ReelPanelViewTests: XCTestCase {
             column.accessibilityLabel,
             ReelStrings.slotLabel(target.slots[0])
         )
-        XCTAssertFalse(sut.debugIsSpinning, "揭晓完毕后计时器必须已停")
+        XCTAssertFalse(sut.debugIsRevealing, "揭晓完毕后不该还在进行中")
     }
 
     func testEveryColumnSettlesExactlyOnce() {
@@ -327,9 +327,9 @@ final class ReelPanelViewTests: XCTestCase {
             haptics: HapticSpy(),
             reducedMotion: false
         )
-        XCTAssertTrue(sut.debugIsSpinning, "揭晓应当已经起了计时器")
+        XCTAssertTrue(sut.debugIsRevealing, "揭晓应当正在进行")
 
         sut.configure(outcome([.cherry, .cherry, .cherry], bonus: 20))
-        XCTAssertFalse(sut.debugIsSpinning, "configure 必须停掉正在跑的揭晓")
+        XCTAssertFalse(sut.debugIsRevealing, "configure 必须作废正在跑的揭晓")
     }
 }
