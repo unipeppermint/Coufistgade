@@ -54,6 +54,17 @@ final class ReelWindowView: UIView {
             case .regular: .title1
             }
         }
+
+        /// 圆角随尺寸走，不能两档共用一个值。
+        ///
+        /// button（20）是按 56 高的按钮定的；HUD 那档只有 34 高，两个 20 的圆角
+        /// 加起来超过整条边，圆角被压到饱和，方格会读成胶囊。见 Theme.Radius。
+        var cornerRadius: CGFloat {
+            switch self {
+            case .compact: Theme.Radius.reelWindowCompact
+            case .regular: Theme.Radius.button
+            }
+        }
     }
 
     private let symbolLabel = UILabel()
@@ -67,7 +78,7 @@ final class ReelWindowView: UIView {
         super.init(frame: .zero)
 
         backgroundColor = UIColor(resource: .appBackground)
-        layer.cornerRadius = Theme.Radius.button
+        layer.cornerRadius = size.cornerRadius
         layer.cornerCurve = .continuous
         apply(.neutral)
 

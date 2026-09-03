@@ -24,6 +24,14 @@ enum Theme {
     enum Radius {
         static let button: CGFloat = 20
         static let card: CGFloat = 24
+
+        /// 对局中 HUD 轮窗的圆角。
+        ///
+        /// 不能用 button（20）：那个值是给 56 高的按钮定的，而 HUD 里的轮窗只有
+        /// 34 高（Layout.reelWindowCompactHeight）。两个 20 的圆角要吃掉 40pt，
+        /// 超过了整条边，圆角于是被压到饱和，方格看起来是个胶囊——「轮窗」这件事
+        /// 就读不出来了。取高度的一个较小比例，让它仍是个圆角方格。
+        static let reelWindowCompact: CGFloat = 10
     }
 
     /// UI_DESIGN §19.
