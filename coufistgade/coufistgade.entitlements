@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<!-- Push Notifications capability。写 development：真机调试与 TestFlight 走
+	     沙盒 APNs，App Store 分发时签名会按发布描述文件换成 production，不需要
+	     在这里再开一份 Release 专用的 entitlements。 -->
+	<key>aps-environment</key>
+	<string>development</string>
+</dict>
+</plist>

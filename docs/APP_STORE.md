@@ -65,12 +65,31 @@ that nothing else in the metadata pointed at.
 
 **4+**. Nothing in the questionnaire applies: no violence (balls colliding is not
 depicted violence), no profanity, no gambling, no user content, no ads, no
-unrestricted web access, no data collection.
+unrestricted web access. (数据收集见下面 Privacy 一节 —— 年龄分级问卷问的是
+内容，推送 SDK 收集的诊断数据不影响 4+。)
 
 ## Privacy
 
-App Privacy → **Data Not Collected**, every category. The app has no backend, no
-analytics, and no third-party SDKs.
+**接入 Firebase Messaging 之后这一节变了 —— 不再是「Data Not Collected」。**
+
+游戏本身仍然不收集任何东西（分数与设置只存在设备上）。但 FCM 会收集数据，
+而 App Privacy 问的是整个 app、含第三方 SDK。以下是各 SDK 自带的
+PrivacyInfo.xcprivacy 实际声明的内容（不是估计，是从 Pods 里读出来的）：
+
+| SDK | 数据类型 | 关联到用户 | 用于追踪 | 用途 |
+|---|---|---|---|---|
+| FirebaseMessaging | Device ID | 否 | 否 | App Functionality |
+| FirebaseMessaging | Other Data Types | 否 | 否 | Analytics |
+| FirebaseMessaging | Other Diagnostic Data | 否 | 否 | App Functionality |
+| FirebaseInstallations | Other Diagnostic Data | 否 | 否 | Analytics |
+| GoogleDataTransport | Other Diagnostic Data | 否 | 否 | Analytics |
+
+三项都是 **not linked / not used for tracking**，所以不触发 App Tracking
+Transparency，不需要弹 IDFA 授权框。但 App Privacy 表单里必须勾上 Device ID
+与 Diagnostics —— 漏填是 App Review 会打回的项。
+
+隐私政策也要跟着改：不能再写「传输任何数据」，因为推送 token 确实会发给
+Google。
 
 A privacy policy URL is required for every submission even when nothing is
 collected. **NEEDS YOU** — host one saying the app stores scores and settings on

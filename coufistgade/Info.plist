@@ -36,5 +36,18 @@
 	     regardless of SKView.preferredFramesPerSecond. -->
 	<key>CADisableMinimumFrameDuration</key>
 	<true/>
+	<!-- Firebase 默认会在运行时 swizzle AppDelegate 的推送回调。关掉它，改由
+	     AppDelegate 显式把 APNs token 交给 Messaging：出问题时堆栈里看得见是谁
+	     在传，不必猜有没有被换掉。关掉之后 didRegisterForRemoteNotifications
+	     必须手动转发，AppDelegate 里那一行就是为此存在的。 -->
+	<key>FirebaseAppDelegateProxyEnabled</key>
+	<false/>
+	<!-- 只有静默推送（data-only、content-available）需要这一项；纯 alert 推送
+	     不需要。FCM 的接入说明要求开，所以先开着。如果最终只发带文案的通知，
+	     可以删掉这两行 —— 声明了用不到的后台模式会招 App Review 问话。 -->
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>remote-notification</string>
+	</array>
 </dict>
 </plist>

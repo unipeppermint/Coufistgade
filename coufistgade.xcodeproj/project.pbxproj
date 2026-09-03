@@ -6,6 +6,11 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		5FFE81BC4D8D7AF7C377361A /* Pods_coufistgade.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C9AB5D0CF6DBC55C9B0FC9D8 /* Pods_coufistgade.framework */; };
+		7B56CBC47466B1D0B3899E0F /* Pods_coufistgadeTests.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 63F185661315E8449D3AF065 /* Pods_coufistgadeTests.framework */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXContainerItemProxy section */
 		0A1B2C17303EDD0200181447 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -19,6 +24,12 @@
 /* Begin PBXFileReference section */
 		047F46E4303EDD0000181447 /* coufistgade.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = coufistgade.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		0A1B2C11303EDD0200181447 /* coufistgadeTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = coufistgadeTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		2ADF3942CB861A5AC9062D2C /* Pods-coufistgadeTests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-coufistgadeTests.debug.xcconfig"; path = "Target Support Files/Pods-coufistgadeTests/Pods-coufistgadeTests.debug.xcconfig"; sourceTree = "<group>"; };
+		35EC484BE422741629C93855 /* Pods-coufistgadeTests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-coufistgadeTests.release.xcconfig"; path = "Target Support Files/Pods-coufistgadeTests/Pods-coufistgadeTests.release.xcconfig"; sourceTree = "<group>"; };
+		4C84ED07D4F9178BE1507CE0 /* Pods-coufistgade.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-coufistgade.release.xcconfig"; path = "Target Support Files/Pods-coufistgade/Pods-coufistgade.release.xcconfig"; sourceTree = "<group>"; };
+		56CA13FA82E1684A90678509 /* Pods-coufistgade.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-coufistgade.debug.xcconfig"; path = "Target Support Files/Pods-coufistgade/Pods-coufistgade.debug.xcconfig"; sourceTree = "<group>"; };
+		63F185661315E8449D3AF065 /* Pods_coufistgadeTests.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_coufistgadeTests.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		C9AB5D0CF6DBC55C9B0FC9D8 /* Pods_coufistgade.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_coufistgade.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -42,6 +53,8 @@
 		};
 		0A1B2C12303EDD0200181447 /* coufistgadeTests */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+			);
 			path = coufistgadeTests;
 			sourceTree = "<group>";
 		};
@@ -52,6 +65,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				5FFE81BC4D8D7AF7C377361A /* Pods_coufistgade.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -59,6 +73,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				7B56CBC47466B1D0B3899E0F /* Pods_coufistgadeTests.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -71,6 +86,8 @@
 				047F46E6303EDD0000181447 /* coufistgade */,
 				0A1B2C12303EDD0200181447 /* coufistgadeTests */,
 				047F46E5303EDD0000181447 /* Products */,
+				0F20635ABDA035E18BB31D18 /* Pods */,
+				AFC03A03C989A9C06C4B2BDD /* Frameworks */,
 			);
 			sourceTree = "<group>";
 		};
@@ -83,6 +100,26 @@
 			name = Products;
 			sourceTree = "<group>";
 		};
+		0F20635ABDA035E18BB31D18 /* Pods */ = {
+			isa = PBXGroup;
+			children = (
+				56CA13FA82E1684A90678509 /* Pods-coufistgade.debug.xcconfig */,
+				4C84ED07D4F9178BE1507CE0 /* Pods-coufistgade.release.xcconfig */,
+				2ADF3942CB861A5AC9062D2C /* Pods-coufistgadeTests.debug.xcconfig */,
+				35EC484BE422741629C93855 /* Pods-coufistgadeTests.release.xcconfig */,
+			);
+			path = Pods;
+			sourceTree = "<group>";
+		};
+		AFC03A03C989A9C06C4B2BDD /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				C9AB5D0CF6DBC55C9B0FC9D8 /* Pods_coufistgade.framework */,
+				63F185661315E8449D3AF065 /* Pods_coufistgadeTests.framework */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -90,9 +127,11 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = 047F46F7303EDD0100181447 /* Build configuration list for PBXNativeTarget "coufistgade" */;
 			buildPhases = (
+				B96897E81685953138984C49 /* [CP] Check Pods Manifest.lock */,
 				047F46E0303EDD0000181447 /* Sources */,
 				047F46E1303EDD0000181447 /* Frameworks */,
 				047F46E2303EDD0000181447 /* Resources */,
+				BA85FB1E8E718A6AD0A69F75 /* [CP] Embed Pods Frameworks */,
 			);
 			buildRules = (
 			);
@@ -102,8 +141,6 @@
 				047F46E6303EDD0000181447 /* coufistgade */,
 			);
 			name = coufistgade;
-			packageProductDependencies = (
-			);
 			productName = coufistgade;
 			productReference = 047F46E4303EDD0000181447 /* coufistgade.app */;
 			productType = "com.apple.product-type.application";
@@ -112,6 +149,7 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = 0A1B2C1A303EDD0200181447 /* Build configuration list for PBXNativeTarget "coufistgadeTests" */;
 			buildPhases = (
+				3FDBB42D05D21B9FABA8FBBC /* [CP] Check Pods Manifest.lock */,
 				0A1B2C15303EDD0200181447 /* Sources */,
 				0A1B2C13303EDD0200181447 /* Frameworks */,
 				0A1B2C16303EDD0200181447 /* Resources */,
@@ -125,8 +163,6 @@
 				0A1B2C12303EDD0200181447 /* coufistgadeTests */,
 			);
 			name = coufistgadeTests;
-			packageProductDependencies = (
-			);
 			productName = coufistgadeTests;
 			productReference = 0A1B2C11303EDD0200181447 /* coufistgadeTests.xctest */;
 			productType = "com.apple.product-type.bundle.unit-test";
@@ -187,6 +223,70 @@
 		};
 /* End PBXResourcesBuildPhase section */
 
+/* Begin PBXShellScriptBuildPhase section */
+		3FDBB42D05D21B9FABA8FBBC /* [CP] Check Pods Manifest.lock */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+				"${PODS_PODFILE_DIR_PATH}/Podfile.lock",
+				"${PODS_ROOT}/Manifest.lock",
+			);
+			name = "[CP] Check Pods Manifest.lock";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+				"$(DERIVED_FILE_DIR)/Pods-coufistgadeTests-checkManifestLockResult.txt",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
+			showEnvVarsInLog = 0;
+		};
+		B96897E81685953138984C49 /* [CP] Check Pods Manifest.lock */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+				"${PODS_PODFILE_DIR_PATH}/Podfile.lock",
+				"${PODS_ROOT}/Manifest.lock",
+			);
+			name = "[CP] Check Pods Manifest.lock";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+				"$(DERIVED_FILE_DIR)/Pods-coufistgade-checkManifestLockResult.txt",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
+			showEnvVarsInLog = 0;
+		};
+		BA85FB1E8E718A6AD0A69F75 /* [CP] Embed Pods Frameworks */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+				"${PODS_ROOT}/Target Support Files/Pods-coufistgade/Pods-coufistgade-frameworks-${CONFIGURATION}-input-files.xcfilelist",
+			);
+			name = "[CP] Embed Pods Frameworks";
+			outputFileListPaths = (
+				"${PODS_ROOT}/Target Support Files/Pods-coufistgade/Pods-coufistgade-frameworks-${CONFIGURATION}-output-files.xcfilelist",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-coufistgade/Pods-coufistgade-frameworks.sh\"\n";
+			showEnvVarsInLog = 0;
+		};
+/* End PBXShellScriptBuildPhase section */
+
 /* Begin PBXSourcesBuildPhase section */
 		047F46E0303EDD0000181447 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
@@ -215,11 +315,14 @@
 /* Begin XCBuildConfiguration section */
 		047F46F8303EDD0100181447 /* Debug */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 56CA13FA82E1684A90678509 /* Pods-coufistgade.debug.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = coufistgade/coufistgade.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
+				ENABLE_USER_SCRIPT_SANDBOXING = NO;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = coufistgade/Info.plist;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
@@ -248,11 +351,14 @@
 		};
 		047F46F9303EDD0100181447 /* Release */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 4C84ED07D4F9178BE1507CE0 /* Pods-coufistgade.release.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = coufistgade/coufistgade.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
+				ENABLE_USER_SCRIPT_SANDBOXING = NO;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = coufistgade/Info.plist;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
@@ -316,7 +422,7 @@
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
-				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = NO;
 				GCC_C_LANGUAGE_STANDARD = gnu17;
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_NO_COMMON_BLOCKS = YES;
@@ -379,7 +485,7 @@
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
-				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = NO;
 				GCC_C_LANGUAGE_STANDARD = gnu17;
 				GCC_NO_COMMON_BLOCKS = YES;
 				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
@@ -400,10 +506,12 @@
 		};
 		0A1B2C1B303EDD0200181447 /* Debug */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 2ADF3942CB861A5AC9062D2C /* Pods-coufistgadeTests.debug.xcconfig */;
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
+				ENABLE_USER_SCRIPT_SANDBOXING = NO;
 				GENERATE_INFOPLIST_FILE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
 				MARKETING_VERSION = 1.0;
@@ -421,10 +529,12 @@
 		};
 		0A1B2C1C303EDD0200181447 /* Release */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 35EC484BE422741629C93855 /* Pods-coufistgadeTests.release.xcconfig */;
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
+				ENABLE_USER_SCRIPT_SANDBOXING = NO;
 				GENERATE_INFOPLIST_FILE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
 				MARKETING_VERSION = 1.0;
