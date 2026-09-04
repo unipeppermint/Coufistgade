@@ -61,6 +61,18 @@
         }
       }
     },
+    "Bounce Rally is starting": {
+      "comment": "VoiceOver label for the launch screen",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bounce Rally is starting"
+          }
+        }
+      }
+    },
     "COMBO": {
       "comment": "Caption for this round's best combo on the result screen",
       "extractionState": "manual",
@@ -117,6 +129,18 @@
           "stringUnit": {
             "state": "translated",
             "value": "Close Settings"
+          }
+        }
+      }
+    },
+    "Close Web Page": {
+      "comment": "VoiceOver label for the button that closes the web page",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Close Web Page"
           }
         }
       }
@@ -193,6 +217,18 @@
         }
       }
     },
+    "OK": {
+      "comment": "Confirm button for an alert raised by the web page",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "OK"
+          }
+        }
+      }
+    },
     "Open Settings": {
       "comment": "VoiceOver label for the settings button",
       "extractionState": "manual",
@@ -265,6 +301,18 @@
         }
       }
     },
+    "Progress reset.": {
+      "comment": "VoiceOver announcement after progress is cleared",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Progress reset."
+          }
+        }
+      }
+    },
     "Quit": {
       "comment": "Secondary action on the pause panel; returns to Home",
       "extractionState": "manual",
@@ -285,18 +333,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Reduce Motion"
-          }
-        }
-      }
-    },
-    "Progress reset.": {
-      "comment": "VoiceOver announcement after progress is cleared",
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Progress reset."
           }
         }
       }
@@ -345,6 +381,18 @@
           "stringUnit": {
             "state": "translated",
             "value": "Resume"
+          }
+        }
+      }
+    },
+    "Retry": {
+      "comment": "Reloads the web page after a failure",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Retry"
           }
         }
       }
@@ -405,6 +453,18 @@
           "stringUnit": {
             "state": "translated",
             "value": "Start Game"
+          }
+        }
+      }
+    },
+    "The page could not be loaded.": {
+      "comment": "Shown when the remote web page fails to load",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The page could not be loaded."
           }
         }
       }

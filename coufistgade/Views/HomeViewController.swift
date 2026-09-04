@@ -73,10 +73,20 @@ final class HomeViewController: UIViewController {
         titleLabel.adjustsFontForContentSizeCategory = true
         titleLabel.textAlignment = .center
         // Wide tracking reads as "premium wordmark" rather than "body text".
+        //
+        // kern 比单词时期小：BOUNCE RALLY 是 12 个字母，两倍于 BOUNCY。
+        //
+        // MEASURED：默认字号（34pt）下 6 与 4 在所有在售尺寸上都放得下，差别只在
+        // 字号顶到上限（40pt）之后 —— 那时 kern 6 在 402pt 宽的屏幕上仍要缩到
+        // 0.964，而 kern 4 是 343pt，在 393 与 402 上刚好不缩。也就是说这 2pt 买
+        // 的是大号 Dynamic Type 下字标不被压小，不是常规状态下的排版。
+        //
+        // 最窄的 375（SE 2/3 代）上两者都会缩，缩多少而已：40pt 时 kern 4 是
+        // 0.953，kern 6 是 0.891。minimumScaleFactor 0.6 兜得住，不会截断。
         titleLabel.attributedText = NSAttributedString(
-            string: "BOUNCY",
+            string: "BOUNCE RALLY",
             attributes: [
-                .kern: 6,
+                .kern: 4,
                 .font: Theme.Typography.rounded(
                     .largeTitle,
                     weight: .bold,

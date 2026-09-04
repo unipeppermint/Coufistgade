@@ -13,8 +13,8 @@
 //  a language with no entry falls back to something readable rather than to a
 //  dotted identifier.
 //
-//  Not localised on purpose: "BOUNCY" is the product's name (UI_DESIGN §4), and
-//  a wordmark is not translated.
+//  Not localised on purpose: "BOUNCE RALLY" is the product's name (UI_DESIGN §4),
+//  and a wordmark is not translated.
 //
 
 import Foundation
@@ -113,6 +113,21 @@ enum Strings {
     /// 重置完成后播报给 VoiceOver——弹窗关掉后屏幕上没有可见变化能说明它生效了。
     static var resetProgressDoneAnnouncement: String { localized("Progress reset.") }
 
+    // MARK: - Launch
+
+    /// 启动页整屏读这一句。字标本身不进目录（见文件头），所以这里不是它的译名，
+    /// 而是「现在屏幕上是什么」的一句描述。
+    static var launchLabel: String { localized("Bounce Rally is starting") }
+
+    // MARK: - Web page
+
+    /// 关闭按钮只有一个图标，标签是 VoiceOver 唯一能读到的东西。
+    static var closeWebPageLabel: String { localized("Close Web Page") }
+    static var webPageUnavailable: String { localized("The page could not be loaded.") }
+    static var retry: String { localized("Retry") }
+    /// 页面里 alert() 的确认按钮。
+    static var ok: String { localized("OK") }
+
     // MARK: - Lookup
 
     private static func localized(_ key: String) -> String {
@@ -143,6 +158,8 @@ enum Strings {
         "Clears your best score, combo, rounds played, and achievements. Your settings are kept.",
         "Reset your progress?", "This cannot be undone.", "Reset", "Cancel",
         "Progress reset.",
+        "Close Web Page", "The page could not be loaded.", "Retry", "OK",
+        "Bounce Rally is starting",
     ]
     #endif
 }

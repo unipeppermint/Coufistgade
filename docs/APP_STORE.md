@@ -8,7 +8,7 @@ Everything marked **NEEDS YOU** cannot be settled from the code.
 | Item | State |
 |---|---|
 | App icon | 1024×1024, no alpha, compiled into the bundle |
-| Display name | `Bouncy` (target is `coufistgade`; `CFBundleDisplayName` corrects it) |
+| Display name | `Bounce Rally` (target is `coufistgade`; `CFBundleDisplayName` corrects it) |
 | Bundle ID | `com.cclv.coufistgade` |
 | Version / build | 1.0 (1) |
 | Deployment target | iOS 18.0 |
@@ -22,13 +22,16 @@ Everything marked **NEEDS YOU** cannot be settled from the code.
 
 ## Name and subtitle
 
-- **Name**: Bouncy
+- **Name**: Bounce Rally — 12 of 30 characters
 - **Subtitle** (30 char max). Counted, not estimated:
   - `One ball. Sixty seconds.` — 24 ✓
   - `Chain the bounce, beat it` — 25 ✓
   - `Chain the bounce, beat the clock` — 32 ✗ (over)
 
-Check availability: "Bouncy" is a common word and the name may be taken.
+Check availability before submitting. "Bounce Rally" is a two-word phrase rather
+than a common single word, so it is likelier to be free than "Bouncy" was — but
+that is an argument about odds, not a search result. Search the App Store, and
+check trademarks in the territories you plan to sell in.
 
 ## Description
 

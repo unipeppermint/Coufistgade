@@ -40,6 +40,23 @@ enum Theme {
         static let transition: TimeInterval = 0.3
         /// One full breathe cycle of the hero ball (UI_DESIGN §6: 2–4s).
         static let heroFloatCycle: TimeInterval = 3.0
+
+        // MARK: - 启动页
+
+        /// 球从屏幕上方落到位所用的时间。
+        ///
+        /// 比 §19 给 UI 转场的 0.25–0.4 长一点点，因为这一下不是转场而是**落体**：
+        /// 太快就读不出「掉下来」，只会看到球凭空出现在中间。
+        static let launchBallDrop: TimeInterval = 0.42
+
+        /// 字标淡入。压在球落地之后，让两件事有先后而不是一起冒出来。
+        static let launchWordmarkFade: TimeInterval = 0.28
+
+        /// 球落地后到切走首页之间的停顿。
+        ///
+        /// 整条启动动画约 1.0s（落 0.42 + 字标 0.28 + 这一段 0.3）。刻意压在 1 秒
+        /// 附近：启动页是挡在玩家和游戏之间的东西，再长就成了收费站。
+        static let launchHold: TimeInterval = 0.3
     }
 
     enum Layout {

@@ -195,8 +195,8 @@ final class LocalizationTests: XCTestCase {
     }
 
     func testTheWordmarkIsNotLocalised() {
-        // UI_DESIGN §4: BOUNCY is the product's name. A wordmark is not
+        // UI_DESIGN §4: BOUNCE RALLY is the product's name. A wordmark is not
         // translated, so it must not appear in the catalog at all.
-        XCTAssertFalse(Strings.allKeys.contains("BOUNCY"))
+        XCTAssertFalse(Strings.allKeys.contains("BOUNCE RALLY"))
     }
 }

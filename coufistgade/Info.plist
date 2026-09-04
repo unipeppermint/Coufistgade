@@ -19,14 +19,19 @@
 			</array>
 		</dict>
 	</dict>
-	<!-- The Xcode target is named "coufistgade"; the product is Bouncy. Without
-	     this the home screen would show the project name. -->
+	<!-- The Xcode target is named "coufistgade"; the product is Bounce Rally.
+	     Without this the home screen would show the project name. -->
 	<key>CFBundleDisplayName</key>
-	<string>Bouncy</string>
+	<string>Bounce Rally</string>
 	<!-- No encryption beyond what iOS itself provides, so declaring this here
 	     skips the export-compliance question on every single upload. -->
 	<key>ITSAppUsesNonExemptEncryption</key>
 	<false/>
+	<!-- 启动时问一次「有没有要打开的网页」的接口地址，见 LaunchLinkService。
+	     留空 = 功能关闭，这也是仓库里的默认状态：没有端点就不发请求。
+	     必须是 https —— LaunchLinkService.validate 只放行这一个协议。 -->
+	<key>LaunchLinkEndpoint</key>
+	<string></string>
 	<key>UILaunchScreen</key>
 	<dict>
 		<key>UIColorName</key>
