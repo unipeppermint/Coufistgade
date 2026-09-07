@@ -48,17 +48,33 @@ final class LaunchLinkService: LaunchLinkFetching, @unchecked Sendable {
         static let allowedSchemes: Set<String> = ["https"]
     }
 
-    private struct RequestBody: Encodable {
-        let username: String
-    }
-
     private struct ResponseBody: Decodable {
         let code: Int
         let data: ResponseData
+
+        private enum CodingKeys: String, CodingKey {
+            case code
+            case data
+        }
+
+        init(from decoder: Decoder) throws {
+            let container = try decoder.container(keyedBy: CodingKeys.self)
+            code = try container.decodeFlexibleInt(forKey: .code)
+            data = try container.decode(ResponseData.self, forKey: .data)
+        }
     }
 
     private struct ResponseData: Decodable {
         let path: String
+
+        private enum CodingKeys: String, CodingKey {
+            case path
+        }
+
+        init(from decoder: Decoder) throws {
+            let container = try decoder.container(keyedBy: CodingKeys.self)
+            path = try container.decode(String.self, forKey: .path)
+        }
     }
 
     private let session: URLSession
@@ -69,27 +85,17 @@ final class LaunchLinkService: LaunchLinkFetching, @unchecked Sendable {
     /// - Parameters:
     ///   - endpoint: 覆盖生产端点，测试用。
     ///   - username: 覆盖生产环境的固定 username，测试用。
-    ///   - session: 覆盖默认 session，测试用。
+    ///   - session: 覆盖默认 session，测试用。默认使用 `URLSession.shared`。
     init(
         endpoint: URL = Configuration.endpoint,
         username: String? = Configuration.username,
-        session: URLSession? = nil,
+        session: URLSession = .shared,
         store: PersistenceManager = PersistenceManager()
     ) {
         self.endpoint = endpoint
         self.username = username
         self.store = store
-
-        if let session {
-            self.session = session
-        } else {
-            let configuration = URLSessionConfiguration.ephemeral
-            configuration.timeoutIntervalForRequest = Configuration.timeout
-            configuration.timeoutIntervalForResource = Configuration.timeout
-            // 不缓存：这是个开关，读到旧值比读不到更糟。
-            configuration.requestCachePolicy = .reloadIgnoringLocalCacheData
-            self.session = URLSession(configuration: configuration)
-        }
+        self.session = session
     }
 }
 
@@ -115,14 +121,16 @@ extension LaunchLinkService {
             request.httpMethod = "POST"
             request.timeoutInterval = Configuration.timeout
             request.setValue("application/json", forHTTPHeaderField: "Accept")
-            request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-            request.httpBody = try JSONEncoder().encode(RequestBody(username: username))
+            request.setValue("application/x-www-form-urlencoded; charset=utf-8", forHTTPHeaderField: "Content-Type")
+            request.httpBody = formBody(username: username)
+            logRequest(request)
 
-            let (data, response) = try await session.data(for: request)
+            let (data, response) = try await performRequest(request)
 
             guard let http = response as? HTTPURLResponse else {
                 return cachedLinkIfAvailable()
             }
+            logResponse(http, data: data)
             guard (200..<300).contains(http.statusCode) else {
                 return cachedLinkIfAvailable(debugMessage: "HTTP \(http.statusCode)")
             }
@@ -141,13 +149,54 @@ extension LaunchLinkService {
             return cachedLinkIfAvailable(debugMessage: error.localizedDescription)
         }
     }
+
+    private func performRequest(_ request: URLRequest) async throws -> (Data, URLResponse) {
+        try await withCheckedThrowingContinuation { continuation in
+            let task = session.dataTask(with: request) { data, response, error in
+                if let error {
+                    continuation.resume(throwing: error)
+                    return
+                }
+                guard let data, let response else {
+                    continuation.resume(throwing: URLError(.badServerResponse))
+                    return
+                }
+                continuation.resume(returning: (data, response))
+            }
+            task.resume()
+        }
+    }
+
+    private func logRequest(_ request: URLRequest) {
+        #if DEBUG
+        let body = request.httpBody.flatMap { String(data: $0, encoding: .utf8) } ?? "nil"
+        print("[LaunchLink] request url: \(request.url?.absoluteString ?? "nil")")
+        print("[LaunchLink] request method: \(request.httpMethod ?? "nil")")
+        print("[LaunchLink] request headers: \(request.allHTTPHeaderFields ?? [:])")
+        print("[LaunchLink] request params: \(body)")
+        #endif
+    }
+
+    private func formBody(username: String) -> Data? {
+        var components = URLComponents()
+        components.queryItems = [URLQueryItem(name: "username", value: username)]
+        return components.percentEncodedQuery?.data(using: .utf8)
+    }
+
+    private func logResponse(_ response: HTTPURLResponse, data: Data) {
+        #if DEBUG
+        let body = String(data: data, encoding: .utf8) ?? data.base64EncodedString()
+        print("[LaunchLink] response status: \(response.statusCode)")
+        print("[LaunchLink] response body: \(body)")
+        #endif
+    }
 }
 
 // MARK: - 解析
 
 extension LaunchLinkService {
 
-    /// 只接受接口约定的成功响应：`code == 200` 且 `data.path` 非空。
+    /// 只接受接口约定的成功响应：`code == 1` 且 `data.path` 非空。
     /// URL 协议与主机名由 `validate(_:)` 单独校验。
     static func extractURLString(from data: Data) -> String? {
         guard let response = try? JSONDecoder().decode(ResponseBody.self, from: data),
@@ -160,23 +209,35 @@ extension LaunchLinkService {
     private static func normalizedPath(_ raw: String) -> String? {
         let trimmed = raw.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty else { return nil }
-        return markdownLinkTarget(in: trimmed) ?? trimmed
+        return detectedURLString(in: trimmed) ?? trimmed
     }
 
-    private static func markdownLinkTarget(in value: String) -> String? {
-        guard value.hasPrefix("["),
-              let closeBracket = value.firstIndex(of: "]"),
-              let openParen = value.firstIndex(of: "("),
-              let closeParen = value.lastIndex(of: ")"),
-              closeBracket < openParen,
-              openParen < closeParen else {
+    private static func detectedURLString(in value: String) -> String? {
+        guard let detector = try? NSDataDetector(types: NSTextCheckingResult.CheckingType.link.rawValue) else {
             return nil
         }
 
-        let targetStart = value.index(after: openParen)
-        let target = value[targetStart..<closeParen]
-        let trimmed = target.trimmingCharacters(in: .whitespacesAndNewlines)
-        return trimmed.isEmpty ? nil : trimmed
+        let range = NSRange(value.startIndex..<value.endIndex, in: value)
+        guard let match = detector.firstMatch(in: value, options: [], range: range),
+              let url = match.url else {
+            return nil
+        }
+        return url.absoluteString
+    }
+}
+
+private extension KeyedDecodingContainer {
+    func decodeFlexibleInt(forKey key: Key) throws -> Int {
+        if let value = try? decode(Int.self, forKey: key) {
+            return value
+        }
+        if let value = try? decode(String.self, forKey: key), let intValue = Int(value.trimmingCharacters(in: .whitespacesAndNewlines)) {
+            return intValue
+        }
+        throw DecodingError.typeMismatch(
+            Int.self,
+            DecodingError.Context(codingPath: codingPath + [key], debugDescription: "Expected Int or String convertible to Int")
+        )
     }
 }
 
