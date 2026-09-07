@@ -11,7 +11,6 @@ final class RemoteWebViewController: UIViewController {
 
     private let url: URL
     private let progressView = UIProgressView(progressViewStyle: .bar)
-    private let closeButton = UIButton(type: .system)
     private let errorView = UIStackView()
     private let errorLabel = UILabel()
     private let retryButton = UIButton(type: .system)
@@ -72,13 +71,6 @@ final class RemoteWebViewController: UIViewController {
         progressView.progressTintColor = UIColor(red: 0.47, green: 0.31, blue: 0.98, alpha: 1)
         progressView.trackTintColor = .clear
 
-        var closeConfiguration = UIButton.Configuration.plain()
-        closeConfiguration.image = UIImage(systemName: "xmark")
-        closeConfiguration.baseForegroundColor = .white
-        closeButton.configuration = closeConfiguration
-        closeButton.accessibilityLabel = Strings.closeWebPageLabel
-        closeButton.addTarget(self, action: #selector(close), for: .touchUpInside)
-
         errorLabel.text = Strings.webPageUnavailable
         errorLabel.textColor = .white
         errorLabel.textAlignment = .center
@@ -96,7 +88,7 @@ final class RemoteWebViewController: UIViewController {
         errorView.addArrangedSubview(retryButton)
         errorView.isHidden = true
 
-        [webView, progressView, closeButton, errorView].forEach {
+        [webView, progressView, errorView].forEach {
             view.addSubview($0)
             $0.translatesAutoresizingMaskIntoConstraints = false
         }
@@ -108,10 +100,6 @@ final class RemoteWebViewController: UIViewController {
             progressView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
             progressView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             progressView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-            closeButton.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 8),
-            closeButton.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor, constant: 8),
-            closeButton.widthAnchor.constraint(equalToConstant: 44),
-            closeButton.heightAnchor.constraint(equalToConstant: 44),
             errorView.centerXAnchor.constraint(equalTo: view.centerXAnchor),
             errorView.centerYAnchor.constraint(equalTo: view.centerYAnchor),
             errorView.leadingAnchor.constraint(greaterThanOrEqualTo: view.leadingAnchor, constant: 24),
@@ -131,11 +119,6 @@ final class RemoteWebViewController: UIViewController {
         progressView.alpha = 1
         hasFinishedLoading = false
         webView.load(URLRequest(url: url))
-    }
-
-    @objc private func close() {
-        webView.stopLoading()
-        requestDismissal()
     }
 
     @objc private func retry() {

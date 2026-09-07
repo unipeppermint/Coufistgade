@@ -73,6 +73,18 @@
         }
       }
     },
+    "Loading": {
+      "comment": "Shown while the app waits for the launch-link decision",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Loading"
+          }
+        }
+      }
+    },
     "COMBO": {
       "comment": "Caption for this round's best combo on the result screen",
       "extractionState": "manual",

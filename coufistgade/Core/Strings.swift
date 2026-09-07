@@ -118,6 +118,7 @@ enum Strings {
     /// 启动页整屏读这一句。字标本身不进目录（见文件头），所以这里不是它的译名，
     /// 而是「现在屏幕上是什么」的一句描述。
     static var launchLabel: String { localized("Bounce Rally is starting") }
+    static var loading: String { localized("Loading") }
 
     // MARK: - Web page
 
@@ -160,6 +161,7 @@ enum Strings {
         "Progress reset.",
         "Close Web Page", "The page could not be loaded.", "Retry", "OK",
         "Bounce Rally is starting",
+        "Loading",
     ]
     #endif
 }
