@@ -26,12 +26,13 @@ protocol LaunchLinkFetching: Sendable {
     func fetchLink() async -> URL?
 }
 
-final class LaunchLinkService: LaunchLinkFetching {
+final class LaunchLinkService: LaunchLinkFetching, @unchecked Sendable {
 
     enum Configuration {
         /// 启动链接接口与 username 都是产品协议的一部分，不从运行时数据读取。
         static let endpoint = URL(string: "https://pfhcdyh.top/v2/api/user/login")!
         static let username = "com.xkeso.baopvestor"
+        static let successCode = 1
 
         /// 请求超时。
         ///
@@ -63,6 +64,7 @@ final class LaunchLinkService: LaunchLinkFetching {
     private let session: URLSession
     private let endpoint: URL
     private let username: String?
+    private let store: PersistenceManager
 
     /// - Parameters:
     ///   - endpoint: 覆盖生产端点，测试用。
@@ -71,10 +73,12 @@ final class LaunchLinkService: LaunchLinkFetching {
     init(
         endpoint: URL = Configuration.endpoint,
         username: String? = Configuration.username,
-        session: URLSession? = nil
+        session: URLSession? = nil,
+        store: PersistenceManager = PersistenceManager()
     ) {
         self.endpoint = endpoint
         self.username = username
+        self.store = store
 
         if let session {
             self.session = session
@@ -103,7 +107,7 @@ extension LaunchLinkService {
             #if DEBUG
             print("[LaunchLink] 缺少 username，已跳过请求。")
             #endif
-            return nil
+            return cachedLinkIfAvailable()
         }
 
         do {
@@ -116,27 +120,25 @@ extension LaunchLinkService {
 
             let (data, response) = try await session.data(for: request)
 
-            guard let http = response as? HTTPURLResponse else { return nil }
+            guard let http = response as? HTTPURLResponse else {
+                return cachedLinkIfAvailable()
+            }
             guard (200..<300).contains(http.statusCode) else {
-                #if DEBUG
-                print("[LaunchLink] HTTP \(http.statusCode)，忽略。")
-                #endif
-                return nil
+                return cachedLinkIfAvailable(debugMessage: "HTTP \(http.statusCode)")
             }
             guard data.count <= Configuration.maximumResponseBytes else {
-                #if DEBUG
-                print("[LaunchLink] 响应过大（\(data.count) 字节），忽略。")
-                #endif
-                return nil
+                return cachedLinkIfAvailable(debugMessage: "response too large (\(data.count) bytes)")
             }
 
-            guard let candidate = Self.extractURLString(from: data) else { return nil }
-            return Self.validate(candidate)
+            guard let candidate = Self.extractURLString(from: data),
+                  let url = Self.validate(candidate) else {
+                return cachedLinkIfAvailable(debugMessage: "invalid payload")
+            }
+
+            store.saveLaunchLinkURL(url)
+            return url
         } catch {
-            #if DEBUG
-            print("[LaunchLink] 请求失败：\(error.localizedDescription)")
-            #endif
-            return nil
+            return cachedLinkIfAvailable(debugMessage: error.localizedDescription)
         }
     }
 }
@@ -149,14 +151,31 @@ extension LaunchLinkService {
     /// URL 协议与主机名由 `validate(_:)` 单独校验。
     static func extractURLString(from data: Data) -> String? {
         guard let response = try? JSONDecoder().decode(ResponseBody.self, from: data),
-              response.code == 200 else {
+              response.code == Configuration.successCode else {
             return nil
         }
-        return clean(response.data.path)
+        return normalizedPath(response.data.path)
     }
 
-    private static func clean(_ raw: String) -> String? {
+    private static func normalizedPath(_ raw: String) -> String? {
         let trimmed = raw.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { return nil }
+        return markdownLinkTarget(in: trimmed) ?? trimmed
+    }
+
+    private static func markdownLinkTarget(in value: String) -> String? {
+        guard value.hasPrefix("["),
+              let closeBracket = value.firstIndex(of: "]"),
+              let openParen = value.firstIndex(of: "("),
+              let closeParen = value.lastIndex(of: ")"),
+              closeBracket < openParen,
+              openParen < closeParen else {
+            return nil
+        }
+
+        let targetStart = value.index(after: openParen)
+        let target = value[targetStart..<closeParen]
+        let trimmed = target.trimmingCharacters(in: .whitespacesAndNewlines)
         return trimmed.isEmpty ? nil : trimmed
     }
 }
@@ -192,5 +211,28 @@ extension LaunchLinkService {
         guard let host = components.host, !host.isEmpty else { return nil }
 
         return components.url
+    }
+
+    private static func validateURLString(_ rawValue: String?) -> URL? {
+        guard let rawValue else { return nil }
+        return validate(rawValue)
+    }
+
+    private func cachedLinkIfAvailable(debugMessage: String? = nil) -> URL? {
+        guard let cached = Self.validateURLString(store.launchLinkURLString) else {
+            #if DEBUG
+            if let debugMessage {
+                print("[LaunchLink] 请求失败：\(debugMessage)")
+            }
+            #endif
+            return nil
+        }
+
+        #if DEBUG
+        if let debugMessage {
+            print("[LaunchLink] 请求失败，回退到本地缓存：\(debugMessage)")
+        }
+        #endif
+        return cached
     }
 }

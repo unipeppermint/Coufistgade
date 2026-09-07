@@ -51,7 +51,7 @@
 			path = coufistgade;
 			sourceTree = "<group>";
 		};
-		0A1B2C12303EDD0200181447 /* coufistgadeTests */ = {
+		7D4A1D1B5F8A4CE9A7A7A101 /* coufistgadeTests */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			path = coufistgadeTests;
 			sourceTree = "<group>";
@@ -82,7 +82,7 @@
 			isa = PBXGroup;
 			children = (
 				047F46E6303EDD0000181447 /* coufistgade */,
-				0A1B2C12303EDD0200181447 /* coufistgadeTests */,
+				7D4A1D1B5F8A4CE9A7A7A101 /* coufistgadeTests */,
 				047F46E5303EDD0000181447 /* Products */,
 				0F20635ABDA035E18BB31D18 /* Pods */,
 				AFC03A03C989A9C06C4B2BDD /* Frameworks */,
@@ -158,7 +158,7 @@
 				0A1B2C18303EDD0200181447 /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
-				0A1B2C12303EDD0200181447 /* coufistgadeTests */,
+				7D4A1D1B5F8A4CE9A7A7A101 /* coufistgadeTests */,
 			);
 			name = coufistgadeTests;
 			productName = coufistgadeTests;

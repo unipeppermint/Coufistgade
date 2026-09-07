@@ -17,8 +17,10 @@ final class RemoteWebViewController: UIViewController {
     private let retryButton = UIButton(type: .system)
     private var progressObservation: NSKeyValueObservation?
     private var configuredUserContentController: WKUserContentController?
+    private var hasFinishedLoading = false
+    var dismissalRequested = false
 
-    var onClose: (() -> Void)?
+    var onDismissRequested: (() -> Void)?
 
     private lazy var userContentController: WKUserContentController = {
         let controller = WKUserContentController()
@@ -127,12 +129,13 @@ final class RemoteWebViewController: UIViewController {
         errorView.isHidden = true
         webView.isHidden = false
         progressView.alpha = 1
+        hasFinishedLoading = false
         webView.load(URLRequest(url: url))
     }
 
     @objc private func close() {
         webView.stopLoading()
-        onClose?()
+        requestDismissal()
     }
 
     @objc private func retry() {
@@ -141,9 +144,16 @@ final class RemoteWebViewController: UIViewController {
 
     private func showLoadFailure(_ error: Error) {
         guard (error as NSError).code != NSURLErrorCancelled else { return }
+        guard !hasFinishedLoading else { return }
         progressView.alpha = 0
         webView.isHidden = true
-        errorView.isHidden = false
+        errorView.isHidden = true
+        requestDismissal()
+    }
+
+    private func requestDismissal() {
+        dismissalRequested = true
+        onDismissRequested?()
     }
 
     deinit {
@@ -223,6 +233,7 @@ final class RemoteWebViewController: UIViewController {
 
 extension RemoteWebViewController: WKNavigationDelegate {
     func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
+        hasFinishedLoading = true
         UIView.animate(withDuration: 0.2, animations: {
             self.progressView.alpha = 0
         }) { _ in

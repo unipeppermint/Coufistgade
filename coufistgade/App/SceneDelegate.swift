@@ -274,10 +274,15 @@ extension SceneDelegate {
         // fullScreen 而不是默认的 automatic：iOS 13 起默认是可以下拉关掉的卡片，
         // 而这一层的关闭方式应该只有那个按钮。
         controller.modalPresentationStyle = .fullScreen
-        controller.onClose = { [weak self] in
-            guard let self, let controller = self.webViewController else { return }
-            controller.dismiss(animated: true) {
-                self.webViewController = nil
+        controller.onDismissRequested = { [weak self, weak controller] in
+            guard let self, let controller else { return }
+            controller.dismissalRequested = true
+            if self.webViewController === controller {
+                controller.dismiss(animated: true) {
+                    if self.webViewController === controller {
+                        self.webViewController = nil
+                    }
+                }
             }
         }
 
@@ -292,7 +297,16 @@ extension SceneDelegate {
         presentationHandler(presenter, controller) { [weak self] didPresent in
             guard let self else { return }
             self.isPresentingWebView = false
-            guard didPresent, self.webViewController == nil else { return }
+            guard didPresent else { return }
+            if controller.dismissalRequested {
+                controller.dismiss(animated: true) {
+                    if self.webViewController === controller {
+                        self.webViewController = nil
+                    }
+                }
+                return
+            }
+            guard self.webViewController == nil else { return }
             self.webViewController = controller
         }
     }

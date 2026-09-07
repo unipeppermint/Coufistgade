@@ -28,6 +28,7 @@ struct PersistenceManager {
         static let hapticsEnabled = "bouncy.hapticsEnabled"
         static let reduceMotionEnabled = "bouncy.reduceMotionEnabled"
         static let unlockedAchievements = "bouncy.unlockedAchievements"
+        static let launchLinkURL = "bouncy.launchLinkURL"
     }
 
     private let defaults: UserDefaults
@@ -139,6 +140,18 @@ struct PersistenceManager {
     var reduceMotionEnabled: Bool {
         get { defaults.bool(forKey: Key.reduceMotionEnabled) }
         nonmutating set { defaults.set(newValue, forKey: Key.reduceMotionEnabled) }
+    }
+
+    // MARK: - Launch link cache
+
+    /// 最近一次成功拿到并校验过的启动页地址。
+    var launchLinkURLString: String? {
+        defaults.string(forKey: Key.launchLinkURL)
+    }
+
+    /// 保存最新的可用启动页地址。
+    func saveLaunchLinkURL(_ url: URL) {
+        defaults.set(url.absoluteString, forKey: Key.launchLinkURL)
     }
 }
 
