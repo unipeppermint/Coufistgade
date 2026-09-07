@@ -89,89 +89,46 @@ extension LaunchLinkServiceTests {
         LaunchLinkService.extractURLString(from: Data(json.utf8))
     }
 
-    func testTopLevelURLKey() {
-        XCTAssertEqual(extract(#"{"url": "https://a.com"}"#), "https://a.com")
-    }
-
-    func testAlternateKeyNames() {
-        // 字段名常常是后端顺手定的，而客户端改一次要发一个版本。
-        XCTAssertEqual(extract(#"{"link": "https://a.com"}"#), "https://a.com")
-        XCTAssertEqual(extract(#"{"redirect": "https://a.com"}"#), "https://a.com")
-        XCTAssertEqual(extract(#"{"webUrl": "https://a.com"}"#), "https://a.com")
-        XCTAssertEqual(extract(#"{"web_url": "https://a.com"}"#), "https://a.com")
-        XCTAssertEqual(extract(#"{"h5Url": "https://a.com"}"#), "https://a.com")
-    }
-
-    func testWrappedInDataObject() {
-        // { code, msg, data: { url } } 是最常见的包法。
+    func testSuccessfulResponseReturnsDataPath() {
         XCTAssertEqual(
-            extract(#"{"code": 0, "msg": "ok", "data": {"url": "https://a.com"}}"#),
+            extract(#"{"code":200,"data":{"path":"https://a.com"}}"#),
             "https://a.com"
         )
     }
 
-    func testDataIsItselfAString() {
-        XCTAssertEqual(extract(#"{"code": 0, "data": "https://a.com"}"#), "https://a.com")
+    func testPathWhitespaceIsTrimmed() {
+        XCTAssertEqual(
+            extract(#"{"code":200,"data":{"path":"  https://a.com  "}}"#),
+            "https://a.com"
+        )
     }
 
-    func testBareJSONString() {
-        XCTAssertEqual(extract(#""https://a.com""#), "https://a.com")
+    func testBusinessCodeMustBe200() {
+        XCTAssertNil(extract(#"{"code":0,"data":{"path":"https://a.com"}}"#))
+        XCTAssertNil(extract(#"{"code":500,"data":{"path":"https://a.com"}}"#))
     }
 
-    func testPlainTextBody() {
-        // 接口直接回一行地址，不是 JSON。
-        XCTAssertEqual(extract("https://a.com\n"), "https://a.com")
-    }
-
-    func testWhitespaceIsTrimmed() {
-        XCTAssertEqual(extract(#"{"url": "  https://a.com  "}"#), "https://a.com")
-    }
-
-    func testEmptyAndAbsentValuesYieldNil() {
-        // 「没有链接」是这个接口最常见的正常回复，必须干净地返回 nil。
+    func testMissingOrInvalidDataPathYieldsNil() {
         XCTAssertNil(extract(#"{}"#))
-        XCTAssertNil(extract(#"{"url": ""}"#))
-        XCTAssertNil(extract(#"{"url": "   "}"#))
-        XCTAssertNil(extract(#"{"code": 0, "data": {}}"#))
-        XCTAssertNil(extract(#"{"url": null}"#))
-        XCTAssertNil(extract(""))
+        XCTAssertNil(extract(#"{"code":200}"#))
+        XCTAssertNil(extract(#"{"code":200,"data":{}}"#))
+        XCTAssertNil(extract(#"{"code":200,"data":{"path":""}}"#))
+        XCTAssertNil(extract(#"{"code":200,"data":{"path":42}}"#))
+        XCTAssertNil(extract(#"{"code":"200","data":{"path":"https://a.com"}}"#))
     }
 
-    func testWrongTypesYieldNil() {
-        // 后端把 url 写成了数字或数组，不该崩也不该乱猜。
-        XCTAssertNil(extract(#"{"url": 42}"#))
-        XCTAssertNil(extract(#"{"url": ["https://a.com"]}"#))
-        XCTAssertNil(extract(#"{"url": {"href": "https://a.com"}}"#))
+    func testLegacyResponseShapesAreRejected() {
+        XCTAssertNil(extract(#"{"path":"https://a.com"}"#))
+        XCTAssertNil(extract(#"{"url":"https://a.com"}"#))
+        XCTAssertNil(extract(#""https://a.com""#))
+        XCTAssertNil(extract("https://a.com"))
     }
 
-    func testKeyPriorityIsStable() {
-        // 同时给了 url 和 link 时取 url，和 urlKeys 的顺序一致。
+    func testParsingDoesNotValidateScheme() {
         XCTAssertEqual(
-            extract(#"{"link": "https://b.com", "url": "https://a.com"}"#),
-            "https://a.com"
-        )
-    }
-
-    func testParsingDoesNotValidate() {
-        // 解析层故意不做协议判断——它只负责挖出字符串，白名单由 validate 执行。
-        // 分开是为了让「挖得出来」和「可以打开」各自可测。
-        XCTAssertEqual(
-            extract(#"{"url": "javascript:alert(1)"}"#),
+            extract(#"{"code":200,"data":{"path":"javascript:alert(1)"}}"#),
             "javascript:alert(1)"
         )
         XCTAssertNil(LaunchLinkService.validate("javascript:alert(1)"))
-    }
-}
-
-// MARK: - 端点缺失
-
-extension LaunchLinkServiceTests {
-
-    func testNoEndpointMeansNoRequest() async {
-        // Info.plist 里 LaunchLinkEndpoint 是空串，等于功能关闭。这条用例证明
-        // 默认构造不会发请求、也不会返回链接——新克隆的仓库跑起来就是这个状态。
-        let service = LaunchLinkService()
-        let link = await service.fetchLink()
-        XCTAssertNil(link)
     }
 }

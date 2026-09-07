@@ -53,8 +53,6 @@
 		};
 		0A1B2C12303EDD0200181447 /* coufistgadeTests */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
-			exceptions = (
-			);
 			path = coufistgadeTests;
 			sourceTree = "<group>";
 		};
@@ -276,9 +274,13 @@
 			inputFileListPaths = (
 				"${PODS_ROOT}/Target Support Files/Pods-coufistgade/Pods-coufistgade-frameworks-${CONFIGURATION}-input-files.xcfilelist",
 			);
+			inputPaths = (
+			);
 			name = "[CP] Embed Pods Frameworks";
 			outputFileListPaths = (
 				"${PODS_ROOT}/Target Support Files/Pods-coufistgade/Pods-coufistgade-frameworks-${CONFIGURATION}-output-files.xcfilelist",
+			);
+			outputPaths = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;

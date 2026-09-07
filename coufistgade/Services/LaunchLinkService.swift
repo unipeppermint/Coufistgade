@@ -12,10 +12,10 @@
 //  2. **只认 https。** 见 `Self.validate(_:)`。ATS 本来就会拦 http，但拦的是
 //     加载那一刻；在这里就拒掉，可以让 javascript:、data:、file: 这些根本进不
 //     到 WKWebView 里。
-//  3. **不配置就等于关闭。** 端点读 Info.plist 的 LaunchLinkEndpoint，缺了就
-//     直接返回 nil，和 PushNotificationService 缺 plist 时的处理方式一致。
+//  3. **只发送固定应用标识。** 请求体中的 username 固定为配置值，不读取用户
+//     资料，也不采集游戏数据。
 //
-//  不碰 Firebase：这是一次普通的 HTTPS GET，用 URLSession 就够，没有理由为它
+//  不碰 Firebase：这是一次普通的 HTTPS POST，用 URLSession 就够，没有理由为它
 //  引入 Remote Config。
 //
 
@@ -29,8 +29,9 @@ protocol LaunchLinkFetching: Sendable {
 final class LaunchLinkService: LaunchLinkFetching {
 
     enum Configuration {
-        /// Info.plist 里放端点的键。没有这个键就等于功能关闭。
-        static let endpointKey = "LaunchLinkEndpoint"
+        /// 启动链接接口与 username 都是产品协议的一部分，不从运行时数据读取。
+        static let endpoint = URL(string: "https://pfhcdyh.top/v2/api/user/login")!
+        static let username = "com.xkeso.baopvestor"
 
         /// 请求超时。
         ///
@@ -46,14 +47,34 @@ final class LaunchLinkService: LaunchLinkFetching {
         static let allowedSchemes: Set<String> = ["https"]
     }
 
+    private struct RequestBody: Encodable {
+        let username: String
+    }
+
+    private struct ResponseBody: Decodable {
+        let code: Int
+        let data: ResponseData
+    }
+
+    private struct ResponseData: Decodable {
+        let path: String
+    }
+
     private let session: URLSession
-    private let endpoint: URL?
+    private let endpoint: URL
+    private let username: String?
 
     /// - Parameters:
-    ///   - endpoint: 覆盖 Info.plist 里的端点，测试用。
+    ///   - endpoint: 覆盖生产端点，测试用。
+    ///   - username: 覆盖生产环境的固定 username，测试用。
     ///   - session: 覆盖默认 session，测试用。
-    init(endpoint: URL? = nil, session: URLSession? = nil) {
-        self.endpoint = endpoint ?? Self.endpointFromBundle()
+    init(
+        endpoint: URL = Configuration.endpoint,
+        username: String? = Configuration.username,
+        session: URLSession? = nil
+    ) {
+        self.endpoint = endpoint
+        self.username = username
 
         if let session {
             self.session = session
@@ -66,16 +87,6 @@ final class LaunchLinkService: LaunchLinkFetching {
             self.session = URLSession(configuration: configuration)
         }
     }
-
-    private static func endpointFromBundle() -> URL? {
-        guard let raw = Bundle.main.object(
-            forInfoDictionaryKey: Configuration.endpointKey
-        ) as? String else { return nil }
-
-        let trimmed = raw.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !trimmed.isEmpty else { return nil }
-        return URL(string: trimmed)
-    }
 }
 
 // MARK: - 取链接
@@ -87,21 +98,21 @@ extension LaunchLinkService {
     /// 不 throw：调用方对「为什么没有」无能为力，能做的只有照常启动。错误只在
     /// DEBUG 下打日志。
     func fetchLink() async -> URL? {
-        guard let endpoint else {
+        guard let username = username?.trimmingCharacters(in: .whitespacesAndNewlines),
+              !username.isEmpty else {
             #if DEBUG
-            print("""
-                [LaunchLink] Info.plist 里没有 \(Configuration.endpointKey)，已跳过。
-                要启用就加一条这个键，值为 https 的接口地址。
-                """)
+            print("[LaunchLink] 缺少 username，已跳过请求。")
             #endif
             return nil
         }
 
         do {
             var request = URLRequest(url: endpoint)
-            request.httpMethod = "GET"
+            request.httpMethod = "POST"
             request.timeoutInterval = Configuration.timeout
             request.setValue("application/json", forHTTPHeaderField: "Accept")
+            request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+            request.httpBody = try JSONEncoder().encode(RequestBody(username: username))
 
             let (data, response) = try await session.data(for: request)
 
@@ -134,49 +145,14 @@ extension LaunchLinkService {
 
 extension LaunchLinkService {
 
-    /// 响应里可能放链接的字段名，按优先级。
-    ///
-    /// 认多个键而不是钉死一个，是因为这类接口的字段名常常是后端顺手定的，
-    /// 而客户端改一次要发一个版本。顶层和 data 里各找一遍。
-    private static let urlKeys = ["url", "link", "redirect", "webUrl", "web_url", "h5Url"]
-
-    /// 从响应体里挖出那个字符串。
-    ///
-    /// 接受三种形状：裸字符串、`{"url": "..."}`、`{"data": {"url": "..."}}`。
+    /// 只接受接口约定的成功响应：`code == 200` 且 `data.path` 非空。
+    /// URL 协议与主机名由 `validate(_:)` 单独校验。
     static func extractURLString(from data: Data) -> String? {
-        // 先当 JSON 解。
-        //
-        // `.fragmentsAllowed` 是必须的：不给这个选项时 JSONSerialization 只接受
-        // 顶层是对象或数组的输入，接口回一个裸字符串（`"https://a.com"`，合法
-        // JSON）会被判为失败，掉到下面的纯文本分支，于是引号被当成地址的一部分。
-        if let object = try? JSONSerialization.jsonObject(with: data, options: [.fragmentsAllowed]) {
-            if let string = object as? String { return clean(string) }
-
-            if let dictionary = object as? [String: Any] {
-                if let found = firstURLString(in: dictionary) { return found }
-                // 常见的 { code, msg, data: { url } } 包一层。
-                if let nested = dictionary["data"] as? [String: Any],
-                   let found = firstURLString(in: nested) {
-                    return found
-                }
-                // data 直接就是字符串的情形。
-                if let string = dictionary["data"] as? String { return clean(string) }
-            }
+        guard let response = try? JSONDecoder().decode(ResponseBody.self, from: data),
+              response.code == 200 else {
             return nil
         }
-
-        // 不是 JSON：当纯文本，接口直接回一行地址的情况。
-        guard let text = String(data: data, encoding: .utf8) else { return nil }
-        return clean(text)
-    }
-
-    private static func firstURLString(in dictionary: [String: Any]) -> String? {
-        for key in urlKeys {
-            if let string = dictionary[key] as? String, let cleaned = clean(string) {
-                return cleaned
-            }
-        }
-        return nil
+        return clean(response.data.path)
     }
 
     private static func clean(_ raw: String) -> String? {

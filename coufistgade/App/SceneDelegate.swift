@@ -18,11 +18,20 @@ final class SceneDelegate: UIResponder, UIWindowSceneDelegate {
 
     var window: UIWindow?
 
+    typealias PresentationHandler = (
+        _ presenter: UIViewController,
+        _ controller: RemoteWebViewController,
+        _ completion: @escaping (Bool) -> Void
+    ) -> Void
+
     /// 启动链接。持有它是为了让请求活到返回为止。
-    private let launchLink: LaunchLinkFetching = LaunchLinkService()
+    private let launchLink: LaunchLinkFetching
+    private let presentationHandler: PresentationHandler
+    private let suppressLaunchLinkInTestHost: Bool
 
     /// 正在展示的网页。非 nil 表示已经盖了一层，用来防止重复呈现。
-    private var webViewController: WebViewController?
+    private var webViewController: RemoteWebViewController?
+    private var isPresentingWebView = false
 
     /// 导航栈是否已经换上来。启动页还在时它是 false。
     private var isMainStackReady = false
@@ -33,6 +42,28 @@ final class SceneDelegate: UIResponder, UIWindowSceneDelegate {
     /// 就没了。而这个请求通常比动画快（本地网络下几十毫秒），所以这不是边缘情况，
     /// 是常态。
     private var pendingLaunchLinkURL: URL?
+
+    override init() {
+        launchLink = LaunchLinkService()
+        suppressLaunchLinkInTestHost = true
+        presentationHandler = { presenter, controller, completion in
+            presenter.present(controller, animated: true)
+            DispatchQueue.main.async {
+                completion(controller.presentingViewController != nil)
+            }
+        }
+        super.init()
+    }
+
+    init(
+        launchLink: LaunchLinkFetching,
+        presentationHandler: @escaping PresentationHandler
+    ) {
+        self.launchLink = launchLink
+        self.presentationHandler = presentationHandler
+        suppressLaunchLinkInTestHost = false
+        super.init()
+    }
 
     func scene(
         _ scene: UIScene,
@@ -56,8 +87,26 @@ final class SceneDelegate: UIResponder, UIWindowSceneDelegate {
             || DebugOptions.startInResultNoBonus
         #endif
 
+        start(
+            in: window,
+            skipsLaunchAnimation: skipsLaunchAnimation,
+            makesKeyAndVisible: true
+        )
+    }
+
+
+    /// 安装启动根控制器并异步请求启动链接。测试可传普通 UIWindow，避免真网络。
+    @MainActor
+    func start(
+        in window: UIWindow,
+        skipsLaunchAnimation: Bool,
+        makesKeyAndVisible: Bool = false
+    ) {
+        self.window = window
+
         if skipsLaunchAnimation {
             window.rootViewController = makeMainStack()
+            mainStackDidBecomeReady()
         } else {
             let launch = LaunchViewController()
             launch.onFinish = { [weak self] in
@@ -66,8 +115,9 @@ final class SceneDelegate: UIResponder, UIWindowSceneDelegate {
             window.rootViewController = launch
         }
 
-        window.makeKeyAndVisible()
-        self.window = window
+        if makesKeyAndVisible {
+            window.makeKeyAndVisible()
+        }
 
         // 放在 window 起来之后：这次请求不该挡住第一帧，失败时用户看到的就是
         // 正常的首页。
@@ -118,12 +168,11 @@ final class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         guard let window, !isMainStackReady else { return }
 
         let stack = makeMainStack()
-        isMainStackReady = true
 
         // Reduce Motion 下不做交叉淡入：这是「复杂转场」，§20 点名要减。
         guard !MotionPreference.isReduced else {
             window.rootViewController = stack
-            flushPendingLaunchLink()
+            mainStackDidBecomeReady()
             return
         }
 
@@ -133,8 +182,15 @@ final class SceneDelegate: UIResponder, UIWindowSceneDelegate {
             options: [.transitionCrossDissolve],
             animations: { window.rootViewController = stack }
         ) { _ in
-            self.flushPendingLaunchLink()
+            self.mainStackDidBecomeReady()
         }
+    }
+
+    @MainActor
+    private func mainStackDidBecomeReady() {
+        guard !isMainStackReady else { return }
+        isMainStackReady = true
+        flushPendingLaunchLink()
     }
 
     #if DEBUG
@@ -173,19 +229,33 @@ extension SceneDelegate {
     /// 的，在里面等网络会把启动卡住，严重时被系统当作启动超时杀掉。所以首页会先
     /// 正常出现，网页随后盖上去。
     private func presentLaunchLinkIfNeeded() {
+        #if DEBUG
+        // 单元测试宿主也会走 SceneDelegate；不要让本地桩测试旁路出真实启动请求。
+        guard !suppressLaunchLinkInTestHost
+            || ProcessInfo.processInfo.environment["XCTestConfigurationFilePath"] == nil else {
+            return
+        }
+        #endif
+
         Task { @MainActor in
             guard let url = await launchLink.fetchLink() else { return }
-            // 请求期间用户可能已经进了别的页面，甚至已经开了一局。仍然盖——这是
-            // 个通知性质的页面，晚到不等于不用出现；但绝不叠第二层。
-            guard webViewController == nil else { return }
-
-            // 启动页还在的话先存着，等换根之后再盖。见 pendingLaunchLinkURL。
-            guard isMainStackReady else {
-                pendingLaunchLinkURL = url
-                return
-            }
-            present(url)
+            handleFetchedLaunchLink(url)
         }
+    }
+
+    /// 接收请求结果。internal 是为了让状态机测试能覆盖重复与呈现失败后的重试。
+    @MainActor
+    func handleFetchedLaunchLink(_ url: URL) {
+        // 请求期间用户可能已经进了别的页面，甚至已经开了一局。仍然盖——这是
+        // 个通知性质的页面，晚到不等于不用出现；但绝不叠第二层。
+        guard webViewController == nil, !isPresentingWebView else { return }
+
+        // 启动页还在的话先存着，等换根之后再盖。见 pendingLaunchLinkURL。
+        guard isMainStackReady else {
+            pendingLaunchLinkURL = url
+            return
+        }
+        present(url)
     }
 
     /// 换根之后把等着的那个链接盖上去。
@@ -193,24 +263,23 @@ extension SceneDelegate {
     private func flushPendingLaunchLink() {
         guard let url = pendingLaunchLinkURL else { return }
         pendingLaunchLinkURL = nil
-        guard webViewController == nil else { return }
-        present(url)
+        handleFetchedLaunchLink(url)
     }
 
     @MainActor
     private func present(_ url: URL) {
         guard let window, let root = window.rootViewController else { return }
 
-        let controller = WebViewController(url: url)
+        let controller = RemoteWebViewController(url: url)
         // fullScreen 而不是默认的 automatic：iOS 13 起默认是可以下拉关掉的卡片，
         // 而这一层的关闭方式应该只有那个按钮。
         controller.modalPresentationStyle = .fullScreen
         controller.onClose = { [weak self] in
+            guard let self, let controller = self.webViewController else { return }
             controller.dismiss(animated: true) {
-                self?.webViewController = nil
+                self.webViewController = nil
             }
         }
-        webViewController = controller
 
         // 已经有别的模态（暂停面板之类）时挂在最上面那个上，否则 iOS 会忽略这次
         // 呈现并在控制台留一句警告。
@@ -218,6 +287,13 @@ extension SceneDelegate {
         while let presented = presenter.presentedViewController {
             presenter = presented
         }
-        presenter.present(controller, animated: true)
+
+        isPresentingWebView = true
+        presentationHandler(presenter, controller) { [weak self] didPresent in
+            guard let self else { return }
+            self.isPresentingWebView = false
+            guard didPresent, self.webViewController == nil else { return }
+            self.webViewController = controller
+        }
     }
 }
