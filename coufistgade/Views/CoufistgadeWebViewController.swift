@@ -1,12 +1,11 @@
 import UIKit
 import WebKit
 
-final class RemoteWebViewController: UIViewController {
+final class CoufistgadeWebViewController: UIViewController {
     private enum ScriptBridge {
         static let openSafari = "openSafari"
         static let open = "open"
-        static let eventTracker = "eventTracker"
-        static let all = [openSafari, open, eventTracker]
+        static let all = [openSafari, open]
     }
 
     private let url: URL
@@ -150,7 +149,7 @@ final class RemoteWebViewController: UIViewController {
     private func openExternalBrowser(with body: Any) {
         guard let url = externalWebURL(from: body) else {
             #if DEBUG
-            print("[RemoteWebViewController] Invalid external URL: \(body)")
+            print("[CoufistgadeWebViewController] Invalid external URL: \(body)")
             #endif
             return
         }
@@ -192,29 +191,9 @@ final class RemoteWebViewController: UIViewController {
         return scheme == "http" || scheme == "https"
     }
 
-    private func handleEventTracker(with body: Any) {
-        let eventName: String?
-        if let name = body as? String {
-            eventName = name
-        } else if let payload = body as? [String: Any] {
-            eventName = payload["eventName"] as? String
-        } else {
-            eventName = nil
-        }
-
-        guard let eventName, !eventName.isEmpty else { return }
-        NotificationCenter.default.post(
-            name: .remoteWebViewDidReceiveTrackingEvent,
-            object: self,
-            userInfo: ["eventName": eventName]
-        )
-        #if DEBUG
-        print("[RemoteWebViewController] eventTracker: \(eventName)")
-        #endif
-    }
 }
 
-extension RemoteWebViewController: WKNavigationDelegate {
+extension CoufistgadeWebViewController: WKNavigationDelegate {
     func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
         hasFinishedLoading = true
         UIView.animate(withDuration: 0.2, animations: {
@@ -245,21 +224,15 @@ extension RemoteWebViewController: WKNavigationDelegate {
     }
 }
 
-extension RemoteWebViewController: WKScriptMessageHandler {
+extension CoufistgadeWebViewController: WKScriptMessageHandler {
     func userContentController(_ userContentController: WKUserContentController, didReceive message: WKScriptMessage) {
         switch message.name {
         case ScriptBridge.openSafari, ScriptBridge.open:
             openExternalBrowser(with: message.body)
-        case ScriptBridge.eventTracker:
-            handleEventTracker(with: message.body)
         default:
             break
         }
     }
-}
-
-extension Notification.Name {
-    static let remoteWebViewDidReceiveTrackingEvent = Notification.Name("RemoteWebViewDidReceiveTrackingEvent")
 }
 
 private final class WeakWebScriptMessageHandler: NSObject, WKScriptMessageHandler {

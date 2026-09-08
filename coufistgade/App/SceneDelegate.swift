@@ -17,7 +17,7 @@ final class SceneDelegate: UIResponder, UIWindowSceneDelegate {
 
     typealias PresentationHandler = (
         _ presenter: UIViewController,
-        _ controller: RemoteWebViewController,
+        _ controller: CoufistgadeWebViewController,
         _ completion: @escaping (Bool) -> Void
     ) -> Void
 
@@ -25,7 +25,7 @@ final class SceneDelegate: UIResponder, UIWindowSceneDelegate {
     private let presentationHandler: PresentationHandler
     private let suppressLaunchLinkInTestHost: Bool
 
-    private var webViewController: RemoteWebViewController?
+    private var webViewController: CoufistgadeWebViewController?
     private var isPresentingWebView = false
     private var didStartLaunchResolution = false
     private var launchLinkURL: URL?
@@ -202,7 +202,7 @@ extension SceneDelegate {
             return
         }
 
-        let controller = RemoteWebViewController(url: url)
+        let controller = CoufistgadeWebViewController(url: url)
         controller.modalPresentationStyle = .fullScreen
 
         var presenter = root
